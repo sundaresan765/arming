@@ -1,0 +1,11 @@
+{
+    "idf.portWin": "COM9",
+    "idf.flashType": "UART",
+    "files.associations": {
+        "num.h": "c",
+        "cf_math.h": "c",
+        "zranger2.h": "c",
+        "position_estimator.h": "c",
+        "motors.h": "c"
+    }
+}
