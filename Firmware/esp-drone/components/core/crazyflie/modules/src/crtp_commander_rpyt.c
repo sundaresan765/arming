@@ -209,7 +209,7 @@ void armMotor(){
 }
 
   disarmMotor();
-  altHoldMode = false;
+  armMode = false;
   // setpoint->thrust = 0;
 }
 void disarmMotor(){
@@ -218,7 +218,7 @@ void disarmMotor(){
     motorsSetRatio(MOTORS[1],0);
     motorsSetRatio(MOTORS[2], 0);
     motorsSetRatio(MOTORS[3],0);
-    altHoldMode = false;
+    armMode = false;
 }
 
 void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
@@ -241,7 +241,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
   
- if(land_Mode){
+ if(altHoldMode){
     if(values->thrust != 0){
     //setpoint->mode.z = modeAbs;
     setpoint->position.z = values->thrust/50000.0f;
@@ -272,14 +272,14 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
     //printf("mode velocity disbaled \n");
   }
 
-  if (altHoldMode) {
+  if (armMode) {
     armMotor();
    
   } else {
     disarmMotor();
     //setpoint->mode.z = modeDisable;
   }
-  if (!altHoldMode) {
+  if (!armMode) {
     disarmMotor();}
 
   // roll/pitch

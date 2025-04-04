@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Downloads/ESP_Drone_app/Firmware/esp-drone/components/drivers/deck
+# Install script for directory: C:/Users/sunda/Documents/arming/Firmware/esp-drone/components/drivers/deck
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

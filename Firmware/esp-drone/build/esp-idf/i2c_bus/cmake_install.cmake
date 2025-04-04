@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Downloads/ESP_Drone_app/Firmware/esp-drone/components/drivers/i2c_bus
+# Install script for directory: C:/Users/sunda/Documents/arming/Firmware/esp-drone/components/drivers/i2c_bus
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

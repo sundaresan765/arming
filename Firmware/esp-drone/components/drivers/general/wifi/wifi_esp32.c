@@ -48,10 +48,10 @@ static uint8_t WIFI_CH = 1;
 #endif
 
 
-bool altHoldMode = false;
-bool land_Mode = false;
-bool disarm_clicked = false;
 bool armMode = false;
+bool altHoldMode = false;
+bool disarm_clicked = false;
+bool isarmMode = false;
 bool takeoff_completed = false;
 bool land_completed = false;
 //bool landModde = false;
@@ -75,6 +75,7 @@ static bool isUDPInit = false;
 static bool isUDPConnected = false;
 
 static bool isAltHoldEnabled = false; // Track the state of AltHold dks
+static bool isArmed = false;
 static bool isLandOff = false;
 // bool altHoldMode = false;
 
@@ -193,67 +194,26 @@ static void udp_server_rx_task(void *pvParameters)
             }
            // printf("\n");
             
-            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x83) // added by dks to enable the button command
-            {
-                if (!isOnground){
-                    ledSet(1,1);    
-                   // ms5611GetData(&pressure_m, &temperature_m, &asl_m);
-                    //printf("Takeoff altitude is Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
-                   // setGroundReference(pressure_m,temperature_m,asl_m);
-                    isOnground = true;
-                    //printf("Ground Barometer Data: Pressure = %.4f mbar, Temperature = %.4f °C \n", pressure_m, temperature_m);
-
-                }
-               
-            }
-            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x12 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x86) // added by dks to enable the button command
-            {
-                ledSet(1,0);
-            }
-            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x00 && rx_buffer[3] == 0x88)
-            {
-                printf("arm is activated");
-                //arm
-                 if(!ismotorinit){
-                  // ismotorinit = true;
-                armMode = true; 
-                ismotorinit = true;
-                printf("Drone is ARMED\n");
-
-                 }
-                 
-                  
-            }
-             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x01 && rx_buffer[3] == 0x89)
-            {
-                printf("disarm is activated");
-                //disarm
-                 if (ismotorinit){
-                     armMode = false;
-                     printf("Drone is DISARMED\n");
-                     ismotorinit = false;
-                 }
-                
-            }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x01){
-                isAltHoldEnabled = false;
+
+                isArmed = false;
                 printf("arm button pressed on\n");
-                if (!isAltHoldEnabled)
+                if (!isArmed)
                 {
                     
-                    altHoldMode = true;
+                    armMode = true;
                     disarm_clicked = false;
-                    if(altHoldMode){ 
+                    if(armMode){ 
                         int targetAltitude = distanceDown;
-                         printf("althold mode is actvated with TOF  target altitude is %d \n", targetAltitude);
+                        // printf("althold mode is actvated with TOF  target altitude is %d \n", targetAltitude);
                     }
-                     isAltHoldEnabled = true;
+                     isArmed = true;
                 }
                  else {
                      ledSet(1,0);
-                     altHoldMode = false;
+                     armMode = false;
                      printf("arm mode is false \n");
-                     isAltHoldEnabled = false;
+                     isArmed = false;
                  }
 
             }
@@ -261,14 +221,14 @@ static void udp_server_rx_task(void *pvParameters)
             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x00)
             {
                 
-                printf("althold button pressed off\n");
-                printf("%d",isAltHoldEnabled);
+                printf("arm button pressed off\n");
+                printf("%d",isArmed);
                 printf("\n");
-                if (isAltHoldEnabled)
+                if (isArmed)
                 {
-                    altHoldMode = false;
+                    armMode = false;
                     disarm_clicked = true;
-                    printf("althold mode is deactivated \n");
+                    printf("arm mode is deactivated \n");
                 }
             }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x01){
@@ -276,7 +236,7 @@ static void udp_server_rx_task(void *pvParameters)
                 isLandOff = false;
                 if (!isLandOff)
                 {
-                    land_Mode = true;
+                    altHoldMode = true;
                     targetAltitude = 0.50f; //distanceDown;
                     //printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
                    isLandOff = true;
@@ -294,7 +254,7 @@ static void udp_server_rx_task(void *pvParameters)
                 if (isLandOff){
                     if(takeoff_completed){
                         landMode = true;
-                        land_Mode = false;
+                        altHoldMode = false;
                         targetAltitude = 0.05f;
                        isLandOff = false;
                         //printf("althold mode is deactvated with TOF  target altitude is %f \n", targetAltitude);
@@ -324,7 +284,7 @@ static void udp_server_rx_task(void *pvParameters)
             }
 #endif
         }
-         if(distanceDown > 0.10f && land_Mode){
+         if(distanceDown > 0.10f && altHoldMode){
             takeoff_completed = true;
             printf("takeoff_completed %f \n",distanceDown);
         }

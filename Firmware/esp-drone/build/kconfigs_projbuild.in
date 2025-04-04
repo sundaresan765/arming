@@ -3,4 +3,4 @@ source "C:/Espressif/frameworks/esp-idf-v4.4/components/bootloader/Kconfig.projb
 source "C:/Espressif/frameworks/esp-idf-v4.4/components/esp_rom/Kconfig.projbuild"
 source "C:/Espressif/frameworks/esp-idf-v4.4/components/esptool_py/Kconfig.projbuild"
 source "C:/Espressif/frameworks/esp-idf-v4.4/components/partition_table/Kconfig.projbuild"
-source "C:/Users/sunda/Downloads/ESP_Drone_app/Firmware/esp-drone/main/Kconfig.projbuild"
+source "C:/Users/sunda/Documents/arming/Firmware/esp-drone/main/Kconfig.projbuild"

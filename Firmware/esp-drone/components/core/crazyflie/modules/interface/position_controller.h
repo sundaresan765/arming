@@ -35,7 +35,8 @@ float asl;
 extern float targetAltitude;
 float currentAltitude;
 extern bool altHoldMode;
-extern bool land_Mode;
+extern bool armMode;
+
 extern bool disarm_clicked;
 extern bool takeOffMode;
 extern bool landMode;
