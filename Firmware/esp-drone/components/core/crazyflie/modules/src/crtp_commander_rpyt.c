@@ -52,7 +52,7 @@
 #include "esp_timer.h"
 
 
-
+#define MAX_ALTITUDE 3.0f 
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
 
@@ -195,7 +195,7 @@ void armMotor(){
     //printf("Elapsed Time: %d ms\n", elapsed_time_ms);  // Now prints correct time
     if(!disarm_clicked)
     {
-     // printf("motor is spinning");
+     //printf("motor is spinning");
       motorsSetRatio(MOTORS[0], motorvalue);
       motorsSetRatio(MOTORS[1], motorvalue);
       motorsSetRatio(MOTORS[2], motorvalue);
@@ -241,58 +241,40 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
   
-  // if(armMode)
-  // {
-  //   //armMotor()
-  //   //ispowerDistributionInit();
-     
-  //      // setpoint->thrust = 0;
-  // //    motorsBeep(0, true, 4000, 3276); // Motor 0 beeps at 4 kHz, 5% duty cycle
-  // //   vTaskDelay(pdMS_TO_TICKS(500));  // Wait 500 ms
-  // //   motorsBeep(0, false, 4000, 0);   // Stop beeping 
-  //  //   int ticks = 0;
-    
-  // //    while(ticks<5000){
-  // //     printf("after update tick is %d\n", ticks);
-  // //     ticks = xTaskGetTickCount();
-  // //     printf("before update tick is %d\n", ticks);
-  // //   setpoint->thrust = 10000;
-  // // }
-  
-  // }
-  // else if(armMode){
-  //   printf("arm mode is disabled\n");
-    
-  //   //setpoint->thrust = 0;
-  //   //  motorsBeep(0, true, 4000, 3276); // Motor 0 beeps at 4 kHz, 5% duty cycle
-  //   // vTaskDelay(pdMS_TO_TICKS(500));  // Wait 500 ms
-  //   // motorsBeep(0, false, 4000, 0);   // Stop beeping 
-  // }
+ if(land_Mode){
+    if(values->thrust != 0){
+    //setpoint->mode.z = modeAbs;
+    setpoint->position.z = values->thrust/50000.0f;
+    targetAltitude = distanceDown + setpoint->position.z; // Update target altitude with pilot input
+    if(targetAltitude > MAX_ALTITUDE) 
+    {
+      targetAltitude = MAX_ALTITUDE;
+    } // limit the target altitude to 3m
+    setpoint->attitude.roll  = 0;
+    setpoint->attitude.pitch = 0;
+    }
+    setpoint->thrust = 0;
+    setpoint->mode.z = modeVelocity;
+    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+   // printf("velocity.z is : %f \n",setpoint->velocity.z);
+
+  }
+  if(landMode && takeoff_completed){
+  setpoint->thrust = 0;
+  setpoint->mode.z = modeVelocity;
+  setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+  //printf("velocity.z is : %f \n",setpoint->velocity.z);
+
+  }
+  if(land_completed){ // disbale the altitude hold mode when the drone is on the ground
+    setpoint->mode.z = modeDisable;
+    landMode = false;
+    //printf("mode velocity disbaled \n");
+  }
 
   if (altHoldMode) {
     armMotor();
-    // setpoint->thrust = 0;
-    // setpoint->mode.z = modeVelocity;
-    // setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    // printf("velocity.z is : %f \n",setpoint->velocity.z);
-    /*
-    printf("inside crtp_commander_rpyt \n");
-    printf("Raw thrust is: %u \n",rawThrust);
-    float h_thrust = 58500 + computeAltitudeHoldPID(relaAlt);
-    printf("h_thrust before limit is : %f \n",h_thrust);
-    h_thrust = fminf(h_thrust, MAX_THRUST);
-    h_thrust = fmaxf(h_thrust, MIN_THRUST);
-    printf("h_thrust after limit is is : %f \n",h_thrust);
-    setpoint->thrust = h_thrust;
-    setpoint->mode.z = modeDisable;
-    */
-
-    //setpoint->thrust = fminf(h_thrust, MAX_THRUST);
-    //setpoint->mode.z = modeVelocity;
-
-    //setpoint->velocity.z = 32767.f + computeAltitudeHoldPID(relaAlt);
-
-    //setpoint->velocity.z = ((float) rawThrust - 32767.f) / 32767.f;
+   
   } else {
     disarmMotor();
     //setpoint->mode.z = modeDisable;

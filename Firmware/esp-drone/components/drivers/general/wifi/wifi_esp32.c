@@ -47,9 +47,16 @@ static uint8_t WIFI_CH = 1;
 #define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
 #endif
 
+
 bool altHoldMode = false;
+bool land_Mode = false;
 bool disarm_clicked = false;
 bool armMode = false;
+bool takeoff_completed = false;
+bool land_completed = false;
+//bool landModde = false;
+bool takeOffMode = false;
+bool landMode = false;
 
 static char rx_buffer[UDP_SERVER_BUFSIZE];
 static char tx_buffer[UDP_SERVER_BUFSIZE];
@@ -68,7 +75,8 @@ static bool isUDPInit = false;
 static bool isUDPConnected = false;
 
 static bool isAltHoldEnabled = false; // Track the state of AltHold dks
-//bool altHoldMode = false;
+static bool isLandOff = false;
+// bool altHoldMode = false;
 
 static bool isOnground = false; // status of the drone dks
 static bool motorinit = false;
@@ -229,9 +237,10 @@ static void udp_server_rx_task(void *pvParameters)
             }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x01){
                 isAltHoldEnabled = false;
-                printf("althold button pressed on\n");
+                printf("arm button pressed on\n");
                 if (!isAltHoldEnabled)
                 {
+                    
                     altHoldMode = true;
                     disarm_clicked = false;
                     if(altHoldMode){ 
@@ -243,18 +252,57 @@ static void udp_server_rx_task(void *pvParameters)
                  else {
                      ledSet(1,0);
                      altHoldMode = false;
-                     printf("althold mode is false \n");
+                     printf("arm mode is false \n");
                      isAltHoldEnabled = false;
                  }
 
             }
+            
             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x00)
             {
+                
                 printf("althold button pressed off\n");
-                if (isAltHoldEnabled){
+                printf("%d",isAltHoldEnabled);
+                printf("\n");
+                if (isAltHoldEnabled)
+                {
                     altHoldMode = false;
                     disarm_clicked = true;
                     printf("althold mode is deactivated \n");
+                }
+            }
+            if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x01){
+                printf("land mode is pressed on\n");
+                isLandOff = false;
+                if (!isLandOff)
+                {
+                    land_Mode = true;
+                    targetAltitude = 0.50f; //distanceDown;
+                    //printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+                   isLandOff = true;
+                }
+                 else {
+                     //altHoldMode = false;
+                     printf("althold mode is false \n");
+                    isLandOff = false;
+                 }
+
+            }
+            else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x00)
+            {
+                printf("land mode is pressed off\n");
+                if (isLandOff){
+                    if(takeoff_completed){
+                        landMode = true;
+                        land_Mode = false;
+                        targetAltitude = 0.05f;
+                       isLandOff = false;
+                        //printf("althold mode is deactvated with TOF  target altitude is %f \n", targetAltitude);
+
+                    }else{
+                        printf("Drone is on ground!!! %f \n", distanceDown);
+                    }
+                    
                 }
             }
             memcpy(inPacket.data, rx_buffer, len);
@@ -275,6 +323,14 @@ static void udp_server_rx_task(void *pvParameters)
                 DEBUG_PRINT_LOCAL(" data[%d] = %02X ", i, inPacket.data[i]);
             }
 #endif
+        }
+         if(distanceDown > 0.10f && land_Mode){
+            takeoff_completed = true;
+            printf("takeoff_completed %f \n",distanceDown);
+        }
+        if(takeoff_completed && landMode && distanceDown <= 0.05f){
+            land_completed = true;
+            printf("land_completed %f \n",distanceDown);
         }
         //printf("Tof data %f \n",distanceDown);
         //printf("Tof data %f \n",tofMeasurement->distance);
