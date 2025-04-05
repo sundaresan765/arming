@@ -256,18 +256,21 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
     setpoint->thrust = 0;
     setpoint->mode.z = modeVelocity;
     setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-   // printf("velocity.z is : %f \n",setpoint->velocity.z);
+   // printf("velocity.z is in althold mode : %f \n",setpoint->velocity.z);
 
   }
   if(landMode && takeoff_completed){
-  setpoint->thrust = 0;
-  setpoint->mode.z = modeVelocity;
-  setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-  //printf("velocity.z is : %f \n",setpoint->velocity.z);
+    printf("land mode and takeoff");
+    setpoint->thrust = 0;
+    setpoint->mode.z = modeVelocity;
+    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    // printf("velocity.z is landMode : %f \n",setpoint->velocity.z);
 
   }
   if(land_completed){ // disbale the altitude hold mode when the drone is on the ground
+    printf("inside land completed\n");
     setpoint->mode.z = modeDisable;
+    land_completed = false;
     landMode = false;
     //printf("mode velocity disbaled \n");
   }

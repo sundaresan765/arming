@@ -57,6 +57,7 @@ bool land_completed = false;
 //bool landModde = false;
 bool takeOffMode = false;
 bool landMode = false;
+bool landCompleatedOnce = false;
 
 static char rx_buffer[UDP_SERVER_BUFSIZE];
 static char tx_buffer[UDP_SERVER_BUFSIZE];
@@ -232,18 +233,19 @@ static void udp_server_rx_task(void *pvParameters)
                 }
             }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x01){
-                printf("land mode is pressed on\n");
+                printf("takeoff  mode is pressed on\n");
                 isLandOff = false;
                 if (!isLandOff)
                 {
                     altHoldMode = true;
                     targetAltitude = 0.50f; //distanceDown;
+                    
                     //printf("althold mode is actvated with TOF  target altitude is %f \n", targetAltitude);
                    isLandOff = true;
                 }
                  else {
                      //altHoldMode = false;
-                     printf("althold mode is false \n");
+                     printf("island mode is false \n");
                     isLandOff = false;
                  }
 
@@ -287,10 +289,19 @@ static void udp_server_rx_task(void *pvParameters)
          if(distanceDown > 0.10f && altHoldMode){
             takeoff_completed = true;
             printf("takeoff_completed %f \n",distanceDown);
+            landCompleatedOnce = false;
         }
         if(takeoff_completed && landMode && distanceDown <= 0.05f){
-            land_completed = true;
-            printf("land_completed %f \n",distanceDown);
+            if(!landCompleatedOnce){
+                land_completed = true;
+                landCompleatedOnce = true;
+
+                printf("land_completed %f \n",distanceDown);
+
+            }else{
+                land_completed = false;
+            }
+            
         }
         //printf("Tof data %f \n",distanceDown);
         //printf("Tof data %f \n",tofMeasurement->distance);

@@ -288,6 +288,7 @@ float computeAltitudeHoldPID(float currentAltitude)
     } else if (velocityAdjustment < -1.0f) {
         velocityAdjustment = -1.0f;
     }
+    printf("velocity is : %.2f",velocityAdjustment);
     return velocityAdjustment;
 }
 
