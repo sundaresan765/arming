@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Documents/arming/Firmware/esp-drone/components/drivers/general/wifi
+# Install script for directory: C:/Users/sunda/Documents/media/arming/Firmware/esp-drone/components/drivers/general/wifi
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

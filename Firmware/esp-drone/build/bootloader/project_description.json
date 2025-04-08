@@ -1,8 +1,8 @@
 {
     "project_name":       "bootloader",
     "project_path":       "C:/Espressif/frameworks/esp-idf-v4.4/components/bootloader/subproject",
-    "build_dir":          "C:/Users/sunda/Documents/arming/Firmware/esp-drone/build/bootloader",
-    "config_file":        "C:/Users/sunda/Documents/arming/Firmware/esp-drone/sdkconfig",
+    "build_dir":          "C:/Users/sunda/Documents/media/arming/Firmware/esp-drone/build/bootloader",
+    "config_file":        "C:/Users/sunda/Documents/media/arming/Firmware/esp-drone/sdkconfig",
     "config_defaults":    "",
     "app_elf":            "bootloader.elf",
     "app_bin":            "bootloader.bin",

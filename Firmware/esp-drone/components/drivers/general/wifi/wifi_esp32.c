@@ -22,6 +22,7 @@
 #include "ledseq.h"
 #include "system.h"
 #include <string.h>
+#include "pm_esplane.h" //dks
 
 #include "ms5611.h"
 #include "position_controller.h"
@@ -405,5 +406,27 @@ void wifiInit(void)
     } 
     xTaskCreate(udp_server_tx_task, UDP_TX_TASK_NAME, UDP_TX_TASK_STACKSIZE, NULL, UDP_TX_TASK_PRI, NULL);
     xTaskCreate(udp_server_rx_task, UDP_RX_TASK_NAME, UDP_RX_TASK_STACKSIZE, NULL, UDP_RX_TASK_PRI, NULL);
+    xTaskCreate(sendBatteryVoltageTask,"BatteryVoltageTask",2048,NULL,UDP_TX_TASK_PRI + 1,NULL);
+
     isInit = true;
+}
+static void sendBatteryVoltageTask(void)
+{
+    float voltage;
+    uint8_t packet[sizeof(float)]; // Buffer to hold the voltage data
+
+    while (1)
+    {
+        voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
+        printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+        memcpy(packet, &voltage, sizeof(float)); // Copy voltage into packet buffer
+
+        wifiSendData(sizeof(packet), packet); // Send the packet over Wi-Fi
+        printf("Packet bytes: ");
+        for (size_t i = 0; i < sizeof(packet); i++)
+        {
+            printf("%02X ", packet[i]);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second
+    }
 }

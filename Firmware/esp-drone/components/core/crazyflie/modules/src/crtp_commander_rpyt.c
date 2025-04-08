@@ -152,6 +152,7 @@ void setCommandermode(FlightMode mode){
  */
 static void rotateYaw(setpoint_t *setpoint, float yawRad)
 {
+  printf("rotateyaw\n");
   float cosy = cosf(yawRad);
   float siny = sinf(yawRad);
   float originalRoll = setpoint->attitude.roll;

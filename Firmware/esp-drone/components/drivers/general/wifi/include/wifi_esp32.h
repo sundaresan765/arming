@@ -51,5 +51,6 @@ bool wifiGetDataBlocking(UDPPacket *in);
  * @note If WIFI Crtp link is activated this function does nothing
  */
 bool wifiSendData(uint32_t size, uint8_t* data);
+static void sendBatteryVoltageTask(void);
 
 #endif
