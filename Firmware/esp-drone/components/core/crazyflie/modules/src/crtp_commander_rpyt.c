@@ -56,9 +56,7 @@
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
 
-
-
-
+bool isThrust = false;
 int  motorvalue = 50000; 
 
 /**
@@ -189,7 +187,7 @@ void armMotor(){
   // setpoint_t setpointInstance = {0};  // Initialize with zeros
   // setpoint_t *setpoint = &setpointInstance;
   //printf("arm mode is enabled\n");
-  while (elapsed_time_ms < 5000) {  
+  
     int64_t current_time_us = esp_timer_get_time();
     elapsed_time_ms = (current_time_us - start_time_us) / 1000; // Update first!
 
@@ -207,12 +205,13 @@ void armMotor(){
 
     
     vTaskDelay(pdMS_TO_TICKS(10));
-}
 
+  
   disarmMotor();
   armMode = false;
   // setpoint->thrust = 0;
 }
+
 void disarmMotor(){
    // printf("arm mode is disabled\n");
     motorsSetRatio(MOTORS[0],0);
@@ -234,14 +233,23 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   }
 
   // Thrust
-  uint16_t rawThrust = values->thrust;
+ // printf("isArmsuccess is %d\n", isArmSuccess);
 
-  if (thrustLocked || (rawThrust < MIN_THRUST)) {
-    setpoint->thrust = 0;
-  } else {
+  if(isArmSuccess){
+    isThrust = true;
+    uint16_t rawThrust = values->thrust;
+    printf("in thrust\n");
+    if (thrustLocked || (rawThrust < MIN_THRUST))
+    {
+      setpoint->thrust = 0;
+    } else {
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
-  
+}
+else{
+  isThrust = false;
+  printf("thrust fail\n");
+}
  if(altHoldMode){
     if(values->thrust != 0){
     //setpoint->mode.z = modeAbs;
@@ -356,7 +364,58 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
     }
   }
 }
+void ideal() {
+    int64_t start_time_us = esp_timer_get_time(); 
+    int elapsed_time_ms = 0;
+    int ended_time_ms = 5000;
 
+    while (elapsed_time_ms < ended_time_ms) {  
+        if (isThrust && land_completed && !takeOffMode && !disarm_clicked) {
+            armMotor();
+            ended_time_ms += 1000;
+            printf("if in thrust and land\n");
+        }
+        else {
+            armsMotor();
+            printf("if in thrust and land armsmotor\n");
+        }
+
+        // Update elapsed time
+        elapsed_time_ms = (esp_timer_get_time() - start_time_us) / 1000;
+    }
+}
+
+void armsMotor(){
+   int64_t start_time_us = esp_timer_get_time();  // Get start time in microseconds
+    int elapsed_time_ms = 0;   // Convert to seconds
+
+  // setpoint_t setpointInstance = {0};  // Initialize with zeros
+  // setpoint_t *setpoint = &setpointInstance;
+  //printf("arm mode is enabled\n");
+  while (elapsed_time_ms < 5000) {  
+    int64_t current_time_us = esp_timer_get_time();
+    elapsed_time_ms = (current_time_us - start_time_us) / 1000; // Update first!
+
+    //printf("Elapsed Time: %d ms\n", elapsed_time_ms);  // Now prints correct time
+    if(!disarm_clicked)
+    {
+     //printf("motor is spinning");
+      motorsSetRatio(MOTORS[0], motorvalue);
+      motorsSetRatio(MOTORS[1], motorvalue);
+      motorsSetRatio(MOTORS[2], motorvalue);
+      motorsSetRatio(MOTORS[3], motorvalue);
+
+      
+    }
+
+    
+    vTaskDelay(pdMS_TO_TICKS(10));
+}
+
+  disarmMotor();
+  armMode = false;
+  // setpoint->thrust = 0;
+}
 // Params for flight modes
 PARAM_GROUP_START(flightmode)
 PARAM_ADD(PARAM_UINT8, althold, &altHoldMode)

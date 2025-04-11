@@ -51,6 +51,7 @@ static uint8_t WIFI_CH = 1;
 
 bool armMode = false;
 bool altHoldMode = false;
+bool isArmSuccess = false;
 bool disarm_clicked = false;
 bool isarmMode = false;
 bool takeoff_completed = false;
@@ -164,6 +165,7 @@ static esp_err_t udp_server_create(void *arg)
     return ESP_OK;
 }
 
+
 static void udp_server_rx_task(void *pvParameters)
 
 {
@@ -197,6 +199,8 @@ static void udp_server_rx_task(void *pvParameters)
            // printf("\n");
             
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x01){
+                
+                 isArmSuccess = true;
                 uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x41};  // Hardcoded float 21.4 (little-endian)
 
     for (int i = 0; i < 10; i++) {
@@ -226,11 +230,23 @@ static void udp_server_rx_task(void *pvParameters)
                      printf("arm mode is false \n");
                      isArmed = false;
                  }
-
+                 ideal();
             }
             
             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x00)
             {
+                                isArmSuccess = false;
+
+                uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x42};  // Hardcoded float 21.4 (little-endian)
+
+    for (int i = 0; i < 10; i++) {
+        wifiSendData(sizeof(packet), packet);
+    }
+
+    printf("Packet bytes: ");
+    for (size_t i = 0; i < sizeof(packet); i++) {
+        printf("%02X ", packet[i]);
+    }
                 
                 printf("arm button pressed off\n");
                 printf("%d",isArmed);

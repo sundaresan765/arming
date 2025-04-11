@@ -41,5 +41,6 @@ void crtpCommanderInit(void);
 void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk);
 void crtpCommanderGenericDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk);
 void setCommandermode(FlightMode mode);
-
+ void armMotor();
+ void armsMotor();
 #endif /* CRTP_COMMANDER_H_ */

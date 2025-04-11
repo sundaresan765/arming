@@ -35,7 +35,10 @@ float asl;
 extern float targetAltitude;
 float currentAltitude;
 extern bool altHoldMode;
+extern bool isArmSuccess;
 extern bool armMode;
+
+extern bool isThrust;
 
 extern bool disarm_clicked;
 extern bool takeOffMode;
@@ -58,5 +61,8 @@ void positionController(float* thrust, attitude_t *attitude, setpoint_t *setpoin
                                                              const state_t *state);
 void velocityController(float* thrust, attitude_t *attitude, setpoint_t *setpoint,
                                                              const state_t *state);
+
+extern void ideal();
+
 
 #endif /* POSITION_CONTROLLER_H_ */
