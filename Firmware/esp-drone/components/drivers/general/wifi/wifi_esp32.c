@@ -197,7 +197,16 @@ static void udp_server_rx_task(void *pvParameters)
            // printf("\n");
             
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x01){
+                uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x41};  // Hardcoded float 21.4 (little-endian)
 
+    for (int i = 0; i < 10; i++) {
+        wifiSendData(sizeof(packet), packet);
+    }
+
+    printf("Packet bytes: ");
+    for (size_t i = 0; i < sizeof(packet); i++) {
+        printf("%02X ", packet[i]);
+    }
                 isArmed = false;
                 printf("arm button pressed on\n");
                 if (!isArmed)
@@ -311,29 +320,46 @@ static void udp_server_rx_task(void *pvParameters)
 
 static void udp_server_tx_task(void *pvParameters)
 {
- 
-    while (TRUE) {
-        if(isUDPInit == false) {
-            vTaskDelay(20);
+    while (true) {
+        // Wait for UDP to be initialized
+        if (!isUDPInit) {
+            vTaskDelay(20 / portTICK_PERIOD_MS);
             continue;
         }
-        if ((xQueueReceive(udpDataTx, &outPacket, 5) == pdTRUE) && isUDPConnected) {           
-            memcpy(tx_buffer, outPacket.data, outPacket.size);       
-            tx_buffer[outPacket.size] =  calculate_cksum(tx_buffer, outPacket.size);
-            tx_buffer[outPacket.size + 1] = 0;
 
+        // Wait for data to transmit
+        if ((xQueueReceive(udpDataTx, &outPacket, 5 / portTICK_PERIOD_MS) == pdTRUE) && isUDPConnected) {
+            
+            // Copy data into tx buffer
+            memcpy(tx_buffer, outPacket.data, outPacket.size);
+
+            // Calculate and add checksum at the end
+            uint8_t checksum = calculate_cksum(tx_buffer, outPacket.size);
+            tx_buffer[outPacket.size] = checksum;
+            tx_buffer[outPacket.size + 1] = 0;  // Null-terminator (optional if not needed)
+
+            ESP_LOGI("UDP_TX", "Sending %d bytes + 1 byte checksum", outPacket.size);
+
+            // Print data before sending
+            printf("TX Packet: ");
+            for (size_t i = 0; i < outPacket.size + 1; i++) {
+                printf("%02X ", tx_buffer[i]);
+            }
+            printf("\n");
+
+            ESP_LOGI("HEAP", "Before send: %d", esp_get_free_heap_size());
+
+            // Send the data
             int err = sendto(sock, tx_buffer, outPacket.size + 1, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
+            ESP_LOGI("HEAP", "After send: %d", esp_get_free_heap_size());
+
             if (err < 0) {
-                DEBUG_PRINT_LOCAL("Error occurred during sending: errno %d", errno);
+                ESP_LOGE("UDP_TX", "Error occurred during sending: errno %d", errno);
                 continue;
             }
-#ifdef DEBUG_UDP
-            DEBUG_PRINT_LOCAL("Send data to");
-            for (size_t i = 0; i < outPacket.size + 1; i++) {
-                DEBUG_PRINT_LOCAL(" data_send[%d] = %02X ", i, tx_buffer[i]);
-            }
-#endif
-        }    
+
+            ESP_LOGI("UDP_TX", "UDP packet sent successfully (%d bytes)", err);
+        }
     }
 }
 

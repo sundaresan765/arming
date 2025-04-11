@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Documents/media/arming/Firmware/esp-drone/components/drivers/i2c_devices/mpu6050
+# Install script for directory: C:/Users/sunda/Videos/Captures/arming/Firmware/esp-drone/components/drivers/i2c_devices/mpu6050
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

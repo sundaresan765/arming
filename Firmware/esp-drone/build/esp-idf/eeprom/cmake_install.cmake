@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Documents/media/arming/Firmware/esp-drone/components/drivers/i2c_devices/eeprom
+# Install script for directory: C:/Users/sunda/Videos/Captures/arming/Firmware/esp-drone/components/drivers/i2c_devices/eeprom
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

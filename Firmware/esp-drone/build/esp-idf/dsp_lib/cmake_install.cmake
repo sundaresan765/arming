@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Documents/media/arming/Firmware/esp-drone/components/lib/dsp_lib
+# Install script for directory: C:/Users/sunda/Videos/Captures/arming/Firmware/esp-drone/components/lib/dsp_lib
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
