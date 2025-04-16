@@ -270,6 +270,16 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   }
   if(land_completed){ // disbale the altitude hold mode when the drone is on the ground
     printf("inside land completed\n");
+      uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x44};  // Hardcoded float 21.4 (little-endian)
+
+    for (int i = 0; i < 10; i++) {
+        wifiSendData(sizeof(packet), packet);
+    }
+
+    printf("Packet bytes: ");
+    for (size_t i = 0; i < sizeof(packet); i++) {
+        printf("%02X ", packet[i]);
+    }
     setpoint->mode.z = modeDisable;
     land_completed = false;
     landMode = false;

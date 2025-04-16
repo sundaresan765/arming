@@ -59,4 +59,5 @@ void positionController(float* thrust, attitude_t *attitude, setpoint_t *setpoin
 void velocityController(float* thrust, attitude_t *attitude, setpoint_t *setpoint,
                                                              const state_t *state);
 
+bool wifiSendData(uint32_t size, uint8_t *data);
 #endif /* POSITION_CONTROLLER_H_ */

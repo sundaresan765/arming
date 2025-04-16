@@ -48,7 +48,7 @@ static uint8_t WIFI_CH = 1;
 #define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
 #endif
 
-
+int counter = 0;
 bool armMode = false;
 bool altHoldMode = false;
 bool disarm_clicked = false;
@@ -232,6 +232,17 @@ static void udp_server_rx_task(void *pvParameters)
             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x00)
             {
                 
+                uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x42};  // Hardcoded float 21.4 (little-endian)
+
+    for (int i = 0; i < 10; i++) {
+        wifiSendData(sizeof(packet), packet);
+    }
+
+    printf("Packet bytes: ");
+    for (size_t i = 0; i < sizeof(packet); i++) {
+        printf("%02X ", packet[i]);
+    }
+                
                 printf("arm button pressed off\n");
                 printf("%d",isArmed);
                 printf("\n");
@@ -243,6 +254,7 @@ static void udp_server_rx_task(void *pvParameters)
                 }
             }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x01){
+                counter = 4;
                 printf("takeoff  mode is pressed on\n");
                 isLandOff = false;
                 if (!isLandOff)
@@ -265,6 +277,8 @@ static void udp_server_rx_task(void *pvParameters)
                 printf("land mode is pressed off\n");
                 if (isLandOff){
                     if(takeoff_completed){
+                        
+                       
                         landMode = true;
                         altHoldMode = false;
                         targetAltitude = 0.05f;
@@ -297,9 +311,32 @@ static void udp_server_rx_task(void *pvParameters)
 #endif
         }
          if(distanceDown > 0.10f && altHoldMode){
+            uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  // Hardcoded float 21.4 (little-endian)
+    if(counter==4){
+    for (int i = 0; i < 10; i++) {
+        wifiSendData(sizeof(packet), packet);
+    }
+    counter = 0;
+}
+   
+            
+    //  uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  // Hardcoded float 21.4 (little-endian)
+
+    
+    //     wifiSendData(sizeof(packet), packet);
+    
+
+    // printf("Packet bytes: ");
+    // if(counter==4){
+    // for (size_t i = 0; i < sizeof(packet); i++) {
+    //     printf("%02X ", packet[i]);
+    // }
+    // counter = 0;
+    // }
             takeoff_completed = true;
             printf("takeoff_completed %f \n",distanceDown);
             landCompleatedOnce = false;
+              
         }
         if(takeoff_completed && landMode && distanceDown <= 0.05f){
             if(!landCompleatedOnce){
@@ -307,6 +344,17 @@ static void udp_server_rx_task(void *pvParameters)
                 landCompleatedOnce = true;
 
                 printf("land_completed %f \n",distanceDown);
+                        
+     uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  // Hardcoded float 21.4 (little-endian)
+
+   
+        wifiSendData(sizeof(packet), packet);
+    
+
+    printf("Packet bytes: ");
+    for (size_t i = 0; i < sizeof(packet); i++) {
+        printf("%02X ", packet[i]);
+    }
 
             }else{
                 land_completed = false;

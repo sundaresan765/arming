@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Videos/Captures/arming/Firmware/esp-drone/components/drivers/spi_devices/pmw3901
+# Install script for directory: C:/Users/sunda/Documents/arming/Firmware/esp-drone/components/drivers/spi_devices/pmw3901
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

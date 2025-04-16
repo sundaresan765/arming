@@ -6,6 +6,7 @@
         "cf_math.h": "c",
         "zranger2.h": "c",
         "position_estimator.h": "c",
-        "motors.h": "c"
+        "motors.h": "c",
+        "position_controller.h": "c"
     }
 }
