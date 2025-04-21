@@ -338,7 +338,9 @@ static void udp_server_rx_task(void *pvParameters)
             landCompleatedOnce = false;
               
         }
-        if(takeoff_completed && landMode && distanceDown <= 0.05f){
+        if(takeoff_completed && landMode && distanceDown <= 0.065f){
+            printf("distance down is in landing\n");
+            landCompleatedOnce = false;
             if(!landCompleatedOnce){
                 land_completed = true;
                 landCompleatedOnce = true;

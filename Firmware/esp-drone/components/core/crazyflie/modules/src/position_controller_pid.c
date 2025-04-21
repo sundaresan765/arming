@@ -291,6 +291,35 @@ float computeAltitudeHoldPID(float currentAltitude)
     printf("velocity is : %.2f",velocityAdjustment);
     return velocityAdjustment;
 }
+float computeAltitudesHoldPID(float currentAltitude)
+{
+  printf("current altitude is %f", currentAltitude);
+
+  altitudeError = targetAltitude - currentAltitude;
+  printf("altitudeError = %f \n", altitudeError);
+
+  // Proportional term
+  float P = Kp * altitudeError;
+
+  // Integral term
+  integralError += altitudeError;
+  float I = Ki * (integralError * DT);
+
+  // Derivative term
+  float D = Kd * ((altitudeError - lastError) / DT);
+  lastError = altitudeError;
+
+  // Compute thrust adjustment
+  float velocityAdjustment = P + I + D;
+  if (velocityAdjustment > 1.0f)
+  {
+    velocityAdjustment = 1.0f;
+  } else if (velocityAdjustment < -1.0f) {
+        velocityAdjustment = -1.0f;
+    }
+    printf("velocity is : %.2f",velocityAdjustment);
+    return velocityAdjustment;
+}
 
 LOG_GROUP_START(posCtl)
 

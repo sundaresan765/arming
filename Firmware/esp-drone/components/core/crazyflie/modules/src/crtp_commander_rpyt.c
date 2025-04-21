@@ -261,10 +261,10 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
 
   }
   if(landMode && takeoff_completed){
-    printf("land mode and takeoff");
+    printf("land mode and takeoff completed\n");
     setpoint->thrust = 0;
     setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+    setpoint->velocity.z = computeAltitudesHoldPID(distanceDown);
     // printf("velocity.z is landMode : %f \n",setpoint->velocity.z);
 
   }

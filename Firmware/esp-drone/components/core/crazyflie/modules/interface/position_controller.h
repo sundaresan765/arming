@@ -48,7 +48,7 @@ extern bool land_completed;
 
 
 float computeAltitudeHoldPID(float currentAltitude);
-
+float computeAltitudesHoldPID(float currentAltitude);
 
 // A position controller calculate the thrust, roll, pitch to approach
 // a 3D position setpoint
