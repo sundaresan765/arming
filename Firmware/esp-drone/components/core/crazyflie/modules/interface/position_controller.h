@@ -36,6 +36,7 @@ extern float targetAltitude;
 float currentAltitude;
 extern bool altHoldMode;
 extern bool armMode;
+extern bool isArmSuccess;
 
 extern bool disarm_clicked;
 extern bool takeOffMode;

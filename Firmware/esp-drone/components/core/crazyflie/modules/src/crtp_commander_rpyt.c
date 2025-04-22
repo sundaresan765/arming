@@ -59,7 +59,7 @@
 
 
 
-int  motorvalue = 50000; 
+int  motorvalue = 40000; 
 
 /**
  * CRTP commander rpyt packet format
@@ -232,8 +232,9 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   if (values->thrust == 0) {
     thrustLocked = false;
   }
-
+  if(isArmSuccess && distanceDown<=0.5f){
   // Thrust
+  printf("it is in thrust\n");
   uint16_t rawThrust = values->thrust;
 
   if (thrustLocked || (rawThrust < MIN_THRUST)) {
@@ -241,13 +242,14 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   } else {
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
+}
   
  if(altHoldMode){
     if(values->thrust != 0){
     //setpoint->mode.z = modeAbs;
     setpoint->position.z = values->thrust/50000.0f;
     targetAltitude = distanceDown + setpoint->position.z; // Update target altitude with pilot input
-    if(targetAltitude > MAX_ALTITUDE) 
+    if(distanceDown > MAX_ALTITUDE) 
     {
       targetAltitude = MAX_ALTITUDE;
     } // limit the target altitude to 3m

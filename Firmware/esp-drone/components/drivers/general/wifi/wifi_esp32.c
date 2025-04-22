@@ -51,6 +51,7 @@ static uint8_t WIFI_CH = 1;
 int counter = 0;
 bool armMode = false;
 bool altHoldMode = false;
+bool isArmSuccess=false;
 bool disarm_clicked = false;
 bool isarmMode = false;
 bool takeoff_completed = false;
@@ -198,6 +199,7 @@ static void udp_server_rx_task(void *pvParameters)
             
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x01){
                 uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x41};  // Hardcoded float 21.4 (little-endian)
+                isArmSuccess=true;
 
     for (int i = 0; i < 10; i++) {
         wifiSendData(sizeof(packet), packet);
@@ -231,6 +233,8 @@ static void udp_server_rx_task(void *pvParameters)
             
             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x00)
             {
+                isArmSuccess=false;
+                
                 
                 uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x42};  // Hardcoded float 21.4 (little-endian)
 
@@ -257,7 +261,7 @@ static void udp_server_rx_task(void *pvParameters)
                 counter = 4;
                 printf("takeoff  mode is pressed on\n");
                 isLandOff = false;
-                if (!isLandOff)
+                if (!isLandOff  && isArmSuccess)
                 {
                     altHoldMode = true;
                     targetAltitude = 0.50f; //distanceDown;
@@ -338,7 +342,7 @@ static void udp_server_rx_task(void *pvParameters)
             landCompleatedOnce = false;
               
         }
-        if(takeoff_completed && landMode && distanceDown <= 0.065f){
+        if(takeoff_completed && landMode && distanceDown <= 0.050f){
             printf("distance down is in landing\n");
             landCompleatedOnce = false;
             if(!landCompleatedOnce){
@@ -347,7 +351,7 @@ static void udp_server_rx_task(void *pvParameters)
 
                 printf("land_completed %f \n",distanceDown);
                         
-     uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  // Hardcoded float 21.4 (little-endian)
+     uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  
 
    
         wifiSendData(sizeof(packet), packet);

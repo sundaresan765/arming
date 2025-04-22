@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Downloads/acknowledement/Firmware/esp-drone/components/drivers/i2c_devices/ms5611
+# Install script for directory: C:/Users/sunda/Downloads/ackdones/Firmware/esp-drone/components/drivers/i2c_devices/ms5611
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
