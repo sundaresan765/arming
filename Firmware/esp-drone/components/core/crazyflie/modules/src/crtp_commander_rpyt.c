@@ -52,7 +52,7 @@
 #include "esp_timer.h"
 
 
-#define MAX_ALTITUDE 3.0f 
+#define MAX_ALTITUDE 1.5f 
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
 #define zPosFactor  500000.0f // with 5l there is smoothness in ascend and descend
@@ -239,13 +239,15 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   // uint16_t rawThrust = values->thrust;
   //int32_t
   rawThrust = values->thrust;
-  printf("rawThrust: %d\n", rawThrust);
+  if(isArmSuccess){
+ // printf("rawThrust: %d\n", rawThrust);
 
   if (thrustLocked || (rawThrust < MIN_THRUST)) {
     setpoint->thrust = 0;
   } else {
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
+}
   
  if(altHoldMode){
     if(rawThrust != 0){

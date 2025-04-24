@@ -50,6 +50,7 @@ static uint8_t WIFI_CH = 1;
 
 int counter = 0;
 bool armMode = false;
+bool isArmSuccess = false;
 bool altHoldMode = false;
 bool disarm_clicked = false;
 bool isarmMode = false;
@@ -200,6 +201,7 @@ static void udp_server_rx_task(void *pvParameters)
                 printf("arm button pressed on\n");
                 if (!isArmed)
                 {
+                    isArmSuccess = true;
                     armMode = true;
                     disarm_clicked = false;
                     isArmed = true;
@@ -211,6 +213,7 @@ static void udp_server_rx_task(void *pvParameters)
                     for (size_t i = 0; i < sizeof(packet); i++) {
                         printf("%02X ", packet[i]);
                     }
+
                 }
                  else {
                      armMode = false;
@@ -225,6 +228,7 @@ static void udp_server_rx_task(void *pvParameters)
                 printf("Disarm button pressed \n");
                 if (isArmed)
                 {
+                    isArmSuccess = false;
                     armMode = false;
                     disarm_clicked = true;
                     printf("Disarm mode is activated \n");
@@ -243,7 +247,7 @@ static void udp_server_rx_task(void *pvParameters)
                 counter = 4;
                 printf("takeoff  mode is pressed on\n");
                 isLandOff = false;
-                if (!isLandOff)
+                if (!isLandOff   && isArmSuccess)
                 {
                     altHoldMode = true;
                     targetAltitude = 0.50f;// 0.50f; //distanceDown;
@@ -260,7 +264,7 @@ static void udp_server_rx_task(void *pvParameters)
             else if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x00) //LAND message
             {
                 printf("land mode is pressed \n");
-                if (isLandOff){
+                if (isLandOff && isArmSuccess){
                     if(takeoff_completed){
                         landMode = true;
                         altHoldMode = false;
@@ -324,7 +328,7 @@ static void udp_server_rx_task(void *pvParameters)
                 land_completed = true;
                 landCompleatedOnce = true;
                 printf("land_completed %f \n",distanceDown);     
-                uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  // Hardcoded float 21.4 (little-endian)
+                uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x44};  // Hardcoded float 21.4 (little-endian)
                 printf("Land Packet bytes: ");
                 for (size_t i = 0; i < sizeof(packet); i++) {
                     wifiSendData(sizeof(packet), packet);
@@ -459,18 +463,51 @@ void wifiInit(void)
 
     isInit = true;
 }
+// static void sendBatteryVoltageTask(void)
+// {
+//     float voltage;
+//     const uint8_t header = 0xBE; // Define a header byte (e.g., 0xBE for "Battery")
+//     uint8_t packet[1 + sizeof(float)]; // 1 byte for header + 4 bytes for float
+
+//     while (1)
+//     {  
+//         voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
+//         printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+
+//         if (voltage < 4.30)
+//         {
+//             packet[0] = header; // Add header at the beginning
+//             memcpy(&packet[1], &voltage, sizeof(float)); // Copy voltage after the header
+
+//             wifiSendData(sizeof(packet), packet); // Send the packet over Wi-Fi
+//         }
+
+//         // Debug print of packet contents
+//         printf("Packet bytes: ");
+//         for (size_t i = 0; i < sizeof(packet); i++)
+//         {
+//             printf("%02X ", packet[i]);
+//         }
+//         printf("\n");
+
+//         vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second
+//     }
+// }
+
 static void sendBatteryVoltageTask(void)
 {
     float voltage;
     uint8_t packet[sizeof(float)]; // Buffer to hold the voltage data
 
     while (1)
-    {
+    {  
         voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
         printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+        if(voltage<4.30){
         memcpy(packet, &voltage, sizeof(float)); // Copy voltage into packet buffer
 
         wifiSendData(sizeof(packet), packet); // Send the packet over Wi-Fi
+        }
         printf("Packet bytes: ");
         for (size_t i = 0; i < sizeof(packet); i++)
         {
@@ -478,4 +515,4 @@ static void sendBatteryVoltageTask(void)
         }
         vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second
     }
-}
+}   
