@@ -60,7 +60,7 @@
 
 float MAX_ALTITUDE = 2.0f;
 
-int  motorvalue = 50000; 
+int  motorvalue = 37000; 
 
 /**
  * CRTP commander rpyt packet format
@@ -191,7 +191,7 @@ void armMotor(){
   // setpoint_t setpointInstance = {0};  // Initialize with zeros
   // setpoint_t *setpoint = &setpointInstance;
   //printf("arm mode is enabled\n");
-  while (elapsed_time_ms < 5000) {  
+  while (elapsed_time_ms < 2000) {  
     int64_t current_time_us = esp_timer_get_time();
     elapsed_time_ms = (current_time_us - start_time_us) / 1000; // Update first!
 
@@ -238,6 +238,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   // Thrust
   // uint16_t rawThrust = values->thrust;
   //int32_t
+  if(isArmSuccess){
   rawThrust = values->thrust;
   printf("rawThrust: %d\n", rawThrust);
 
@@ -246,6 +247,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   } else {
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
+}
   
  if(altHoldMode){
     if(rawThrust != 0){

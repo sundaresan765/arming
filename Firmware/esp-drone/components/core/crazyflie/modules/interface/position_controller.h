@@ -42,7 +42,7 @@ extern bool takeOffMode;
 extern bool landMode;
 
 extern bool takeOffMode;
-
+extern bool isArmSuccess;
 extern bool takeoff_completed;
 extern bool land_completed;
 extern int32_t rawThrust;
@@ -63,4 +63,5 @@ void velocityController(float* thrust, attitude_t *attitude, setpoint_t *setpoin
                                                              const state_t *state);
 
 bool wifiSendData(uint32_t size, uint8_t *data);
+float handle_distance(float distanceDown) ;
 #endif /* POSITION_CONTROLLER_H_ */

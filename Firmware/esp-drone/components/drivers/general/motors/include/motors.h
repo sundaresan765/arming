@@ -204,5 +204,5 @@ void motorsTestTask(void *params);
  *     motorsBeep(false, 0, 0); *
  * */
 void motorsBeep(int id, bool enable, uint16_t frequency, uint16_t ratio);
-void disarmMotor();
+extern void disarmMotor();
 #endif /* __MOTORS_H__ */

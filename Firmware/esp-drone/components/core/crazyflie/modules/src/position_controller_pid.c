@@ -27,6 +27,7 @@
 
 #include <math.h>
 #include "num.h"
+#include "esp_timer.h"
 
 #include "commander.h"
 #include "log.h"
@@ -37,7 +38,7 @@
 #define DEBUG_MODULE "POSITION_CONTROLLER"
 #include "debug_cf.h"
 #include "stdio.h"
-
+#include "motors.h"
 float Kp = 1.50f; // 3.0f;  // Proportional gain
 float Ki = 1.50f; //3.0f; // Integral gain
 float Kd = 0.15f;  // Derivative gain
@@ -268,6 +269,10 @@ void positionControllerResetAllPID()
 // added by dks
 float computeAltitudeHoldPID(float currentAltitude)
 {
+  if(currentAltitude>0.9)
+  {
+    currentAltitude=0;
+  }
     altitudeError = targetAltitude - currentAltitude;
     printf("current altitude is %f \n", currentAltitude);
     printf("target altitude is %f \n", targetAltitude);
@@ -286,6 +291,7 @@ float computeAltitudeHoldPID(float currentAltitude)
 
     // Compute thrust adjustment
     float velocityAdjustment = P + I + D;
+    if(currentAltitude>0){
     if(rawThrust < 0.0f && velocityAdjustment > 0.0f) {
         velocityAdjustment = -(velocityAdjustment);}
     if(currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
@@ -296,6 +302,21 @@ float computeAltitudeHoldPID(float currentAltitude)
     } else if (velocityAdjustment < -1.0f) {
         velocityAdjustment = -1.0f;
     }
+  }
+  else{
+     int64_t start_time_us = esp_timer_get_time();  // Get start time in microseconds
+    int elapsed_time_ms = 0;   // Convert to seconds
+     while (elapsed_time_ms < 5000) {  
+    int64_t current_time_us = esp_timer_get_time();
+    elapsed_time_ms = (current_time_us - start_time_us) / 1000; // Update first!
+        velocityAdjustment=-1.0f;
+        if(elapsed_time_ms==4000){
+            disarmMotor();
+            printf("it is working");
+        }
+     }
+
+  }
     printf("velocity is : %.2f \n",velocityAdjustment);
     return velocityAdjustment;
 }
