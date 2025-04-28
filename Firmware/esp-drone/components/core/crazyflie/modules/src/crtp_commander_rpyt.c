@@ -51,8 +51,7 @@
 #include "motors.h"
 #include "esp_timer.h"
 
-
-
+bool disarm = false;
 #define MIN_THRUST  1000
 #define MAX_THRUST  60000
 #define zPosFactor  500000.0f // with 5l there is smoothness in ascend and descend
@@ -216,7 +215,10 @@ void armMotor(){
   // setpoint->thrust = 0;
 }
 void disarmMotor(){
-   // printf("arm mode is disabled\n");
+  if(disarm){
+     printf("disarm motor\n");
+     disarm = true;
+  }
     motorsSetRatio(MOTORS[0],0);
     motorsSetRatio(MOTORS[1],0);
     motorsSetRatio(MOTORS[2], 0);

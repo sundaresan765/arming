@@ -47,9 +47,8 @@ extern bool takeoff_completed;
 extern bool land_completed;
 extern int32_t rawThrust;
 extern float MAX_ALTITUDE;
-
-
-
+extern bool disarm;
+void disarmsMotor();
 float computeAltitudeHoldPID(float currentAltitude);
 // float computeAltitudesHoldPID(float currentAltitude);
 
