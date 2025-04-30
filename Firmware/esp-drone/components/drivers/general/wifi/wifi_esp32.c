@@ -312,7 +312,7 @@ static void udp_server_rx_task(void *pvParameters)
         }
          if(distanceDown > 0.10f && altHoldMode){ // 
             takeoff_completed = true;
-            printf("takeoff_completed %f \n",distanceDown);
+           // printf("takeoff_completed %f \n",distanceDown);
             uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  // Hardcoded float 21.4 (little-endian)
             if(counter==4){
             for (int i = 0; i < 10; i++) {
@@ -501,7 +501,7 @@ static void sendBatteryVoltageTask(void)
     while (1)
     {  
         voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
-        printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+       // printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
 
         if (voltage < 4.30)
         {
@@ -512,12 +512,12 @@ static void sendBatteryVoltageTask(void)
         }
 
         // Debug print of packet contents
-        printf("Packet bytes: ");
-        for (size_t i = 0; i < sizeof(packet); i++)
-        {
-            printf("%02X ", packet[i]);
-        }
-        printf("\n");
+        // printf("Packet bytes: ");
+        // for (size_t i = 0; i < sizeof(packet); i++)
+        // {
+        //     printf("%02X ", packet[i]);
+        // }
+        // printf("\n");
 
         vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second
     }

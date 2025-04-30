@@ -216,7 +216,7 @@ void armMotor(){
 }
 void disarmMotor(){
   if(disarm){
-     printf("disarm motor\n");
+    // printf("disarm motor\n");
      disarm = true;
   }
     motorsSetRatio(MOTORS[0],0);
@@ -242,7 +242,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   //int32_t
   if(isArmSuccess){
   rawThrust = values->thrust;
-  printf("rawThrust: %d\n", rawThrust);
+ // printf("rawThrust: %d\n", rawThrust);
 
   if (thrustLocked || (rawThrust < MIN_THRUST)) {
     setpoint->thrust = 0;

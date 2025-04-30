@@ -1,34 +1,8 @@
-/**
- *    ||          ____  _ __
- * +------+      / __ )(_) /_______________ _____  ___
- * | 0xBC |     / __  / / __/ ___/ ___/ __ `/_  / / _ \
- * +------+    / /_/ / / /_/ /__/ /  / /_/ / / /_/  __/
- *  ||  ||    /_____/_/\__/\___/_/   \__,_/ /___/\___/
- *
- * ESP-Drone Firmware
- *
- * Copyright 2019-2020  Espressif Systems (Shanghai)
- * Copyright (C) 2016 Bitcraze AB
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, in version 3.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- * position_estimator_pid.c: PID-based implementation of the position controller
- */
 
 #include <math.h>
 #include "num.h"
 #include "esp_timer.h"
-
+#include "esp_system.h"
 #include "commander.h"
 #include "log.h"
 #include "param.h"
@@ -43,15 +17,14 @@ float Kp = 1.50f; // 3.0f;  // Proportional gain
 float Ki = 1.50f; //3.0f; // Integral gain
 float Kd = 0.15f;  // Derivative gain
 
-    float velocity;
-
 float altitudeError = 0;
 float integralError = 0;
 float lastError = 0;
-bool f=false;
+
 float targetAltitude = 0.0f;
 int32_t rawThrust = 0;
-static int emergencyCounter = 0;
+//int8_t minVelcoity = -0.5f;
+float min_maxVelcoity = 0.5f;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -270,121 +243,62 @@ void positionControllerResetAllPID()
 }
 
 // added by dks
-// float computeAltitudeHoldPID(float currentAltitude)
-// {
-//   static bool emergencyLanding = false;
-//   if(currentAltitude>0.6)
-//   {
-//     currentAltitude=0;
-//     f=true;
-//   }
-//   if(f){
-//     currentAltitude=0;
-//   }
-//     altitudeError = targetAltitude - currentAltitude;
-//     printf("current altitude is %f \n", currentAltitude);
-//    // printf("target altitude is %f \n", targetAltitude);
-//    // printf("altitudeError = %f \n",altitudeError);
+float computeAltitudeHoldPID(float currentAltitude)
 
-//     // Proportional term
-//     float P = Kp * altitudeError;
-
-//     // Integral term
-//     integralError += altitudeError;
-//     float I = Ki * (integralError * DT);
-
-//     // Derivative term
-//     float D = Kd *((altitudeError - lastError) / DT);
-//     lastError = altitudeError;
-
-//     // Compute thrust adjustment
-//     float velocityAdjustment = P + I + D;
-//     if(currentAltitude>0){
-//     if(rawThrust < 0.0f && velocityAdjustment > 0.0f) {
-//         velocityAdjustment = -(velocityAdjustment);}
-//     if(currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
-//       velocityAdjustment = -(velocityAdjustment);}
-//       //printf("velocity is : %.2f",velocityAdjustment);
-//     if(velocityAdjustment > 1.0f) {
-//         velocityAdjustment = 1.0f;
-//     } else if (velocityAdjustment < -1.0f) {
-//         velocityAdjustment = -1.0f;
-//     }
-//   }
-//     else{
-//       int64_t start_time_us = esp_timer_get_time();  // Get start time in microseconds
-// int elapsed_time_ms = 0;   // Variable to track elapsed time in milliseconds
-
-// if (!emergencyLanding) {
-//     emergencyLanding = true;
-//     emergencyCounter = 0;  // Reset emergency counter at the start
-//     printf("Emergency landing started!\n");
-// }
-
-// // Set velocity adjustment to -1.0f to reduce thrust immediately
-// velocityAdjustment = -1.0f;
-
-// // Update elapsed time
-// elapsed_time_ms = (esp_timer_get_time() - start_time_us) / 1000; // Convert microseconds to milliseconds
-
-// // Track time and disarm motor after 3 seconds
-// if (elapsed_time_ms >= 3000) {  // 3 seconds
-//     disarmMotor();  // Disarm motor after 3 seconds
-//     emergencyLanding = false;
-//     emergencyCounter = 0;  // Reset counter
-// }
-
-// printf("Velocity Adjustment: %.2f, Elapsed Time: %d ms\n", velocityAdjustment, elapsed_time_ms);
-
-//     }
-//     return velocityAdjustment;
-// }
- 
-float computeAltitudeHoldPID(float currentAltitude) {
-    static bool emergencyLanding = false;
+{
+  static bool emergencyLanding = false;
     static int64_t start_time_us = 0; // Track emergency landing start time
     static bool f = false;  // Initialize the flag
-    static int emergencyCounter = 0; // Emergency counter
-    if (currentAltitude > 1.0) {
-        currentAltitude = 0;
-        f = true;  // Set f to true when the altitude is above 0.6
-    }
+    //static int emergencyCounter = 0; // Emergency counter
+    float velocity;
+        float velocityAdjustment = 0;
 
-    if (f) {
-        currentAltitude = 0;
-    }
+    // if (currentAltitude > 1.0) {
+    //     currentAltitude = 0;
+    //     f = true;  // Set f to true when the altitude is above 0.6
+    // }
+
+    // if (f) {
+    //     currentAltitude = 0;
+    // }
+        if(currentAltitude>0){
 
     altitudeError = targetAltitude - currentAltitude;
     printf("current altitude is %f \n", currentAltitude);
+    // printf("target altitude is %f \n", targetAltitude);
+    // printf("altitudeError = %f \n",altitudeError);
 
-    // PID calculation
+    // Proportional term
     float P = Kp * altitudeError;
+
+    // Integral term
     integralError += altitudeError;
     float I = Ki * (integralError * DT);
-    float D = Kd * ((altitudeError - lastError) / DT);
+
+    // Derivative term
+    float D = Kd *((altitudeError - lastError) / DT);
     lastError = altitudeError;
 
-    float velocityAdjustment = P + I + D;
-     // printf("Velocity Adjustment before sending: %.2f\n", velocityAdjustment);
-    if (currentAltitude > 0) {
-      printf(" it is in current altitude");
-      if (rawThrust < 0.0f && velocityAdjustment > 0.0f)
-      {
-        velocityAdjustment = -(velocityAdjustment);
-      }
-        if (currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
-            velocityAdjustment = -(velocityAdjustment);
-        }
+    // Compute thrust adjustment
+    printf("velocity adjustment is before               %2f\n", velocityAdjustment);
+    // if(currentAltitude>0){
+      velocityAdjustment = P + I + D;
+    if(rawThrust < 0.0f && velocityAdjustment > 0.0f) {
+        velocityAdjustment = -(velocityAdjustment);}
+    if(currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
+      velocityAdjustment = -(velocityAdjustment);}
+      //printf("velocity is : %.2f",velocityAdjustment);
+    if(velocityAdjustment > min_maxVelcoity) {
+        velocityAdjustment = min_maxVelcoity;
+    } else if (velocityAdjustment < -(min_maxVelcoity)) {
+        velocityAdjustment = -(min_maxVelcoity);
+    }
 
-        if (velocityAdjustment > 1.0f) {
-            velocityAdjustment = 1.0f;
-        } else if (velocityAdjustment < -1.0f) {
-            velocityAdjustment = -1.0f;
-        }
-    } else {
+  }
+    else {
         if (!emergencyLanding) {
             emergencyLanding = true;
-            emergencyCounter = 0;  // Reset emergency counter
+              // Reset emergency counter
             start_time_us = esp_timer_get_time();  // Capture the start time
             printf("Emergency landing started!\n");
         }
@@ -397,8 +311,13 @@ float computeAltitudeHoldPID(float currentAltitude) {
         if (elapsed_time_ms >= 5000) {  // After 5 seconds
           disarm =true ;
           disarmMotor();
+           printf("Motor disarmed after 5 seconds.\n");
+          //vTaskDelay(2000 / portTICK_PERIOD_MS);
+          esp_restart();
           f = false;                // Disarm the motor
           emergencyLanding = false; // End emergency landing state
+    //       printf("Soft resetting ESP32...\n");
+    // vTaskDelay(2000 / portTICK_PERIOD_MS);  // 2-second delay
           printf("Motor disarmed after 5 seconds.\n");
         } 
         
@@ -419,10 +338,38 @@ float computeAltitudeHoldPID(float currentAltitude) {
         
     }
    
-    printf("Velocity Adjustment: %.2f\n", velocityAdjustment);
+    printf("velocity is : %.2f \n",velocityAdjustment);
     return velocityAdjustment;
 }
+// float computeAltitudesHoldPID(float currentAltitude)
+// {
+//   printf("current altitude is %f", currentAltitude);
 
+//   altitudeError = targetAltitude - currentAltitude;
+//   printf("altitudeError = %f \n", altitudeError);
+
+//   // Proportional term
+//   float P = Kp * altitudeError;
+
+//   // Integral term
+//   integralError += altitudeError;
+//   float I = Ki * (integralError * DT);
+
+//   // Derivative term
+//   float D = Kd * ((altitudeError - lastError) / DT);
+//   lastError = altitudeError;
+
+//   // Compute thrust adjustment
+//   float velocityAdjustment = P + I + D;
+//   if (velocityAdjustment > 1.0f)
+//   {
+//     velocityAdjustment = 1.0f;
+//   } else if (velocityAdjustment < -1.0f) {
+//         velocityAdjustment = -1.0f;
+//     }
+//     printf("velocity is : %.2f",velocityAdjustment);
+//     return velocityAdjustment;
+// }
 
 LOG_GROUP_START(posCtl)
 
@@ -494,3 +441,83 @@ PARAM_ADD(PARAM_FLOAT, xyVelMax, &xyVelMax)
 PARAM_ADD(PARAM_FLOAT, zVelMax,  &zVelMax)
 
 PARAM_GROUP_STOP(posCtlPid)
+
+// float computeAltitudeHoldPID(float currentAltitude) {
+//     static bool emergencyLanding = false;
+//     static int64_t start_time_us = 0; // Track emergency landing start time
+//     static bool f = false;  // Initialize the flag
+//     static int emergencyCounter = 0; // Emergency counter
+//     if (currentAltitude > 1.0) {
+//         currentAltitude = 0;
+//         f = true;  // Set f to true when the altitude is above 0.6
+//     }
+
+//     if (f) {
+//         currentAltitude = 0;
+//     }
+
+//     altitudeError = targetAltitude - currentAltitude;
+//     printf("current altitude is %f \n", currentAltitude);
+
+//     // PID calculation
+//     float P = Kp * altitudeError;
+//     integralError += altitudeError;
+//     float I = Ki * (integralError * DT);
+//     float D = Kd * ((altitudeError - lastError) / DT);
+//     lastError = altitudeError;
+
+//     float velocityAdjustment = P + I + D;
+//       printf("Velocity Adjustment before sending: %.2f\n", velocityAdjustment);
+//     // if (currentAltitude > 0) {
+//      // printf(" it is in current altitude");
+//       if(rawThrust < 0.0f && velocityAdjustment > 0.0f) {
+//         velocityAdjustment = -(velocityAdjustment);}
+//     if(currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
+//       velocityAdjustment = -(velocityAdjustment);}
+//       //printf("velocity is : %.2f",velocityAdjustment);
+//     if(velocityAdjustment > min_maxVelcoity) {
+//         velocityAdjustment = min_maxVelcoity;
+//     } else if (velocityAdjustment < min_maxVelcoity) {
+//         velocityAdjustment = -(min_maxVelcoity);
+//     }
+//     // } else {
+//     //     if (!emergencyLanding) {
+//     //         emergencyLanding = true;
+//     //         emergencyCounter = 0;  // Reset emergency counter
+//     //         start_time_us = esp_timer_get_time();  // Capture the start time
+//     //         printf("Emergency landing started!\n");
+//     //     }
+
+//     //     // Calculate elapsed time
+//     //     int elapsed_time_ms = (esp_timer_get_time() - start_time_us) / 1000; // Convert microseconds to milliseconds
+//     //     printf("Elapsed time: %d ms\n", elapsed_time_ms);
+//     //         int elapsed_seconds = elapsed_time_ms / 1000;  // 0,1,2,3,4
+ 
+//     //     if (elapsed_time_ms >= 5000) {  // After 5 seconds
+//     //       disarm =true ;
+//     //       disarmMotor();
+//     //       f = false;                // Disarm the motor
+//     //       emergencyLanding = false; // End emergency landing state
+//     //       printf("Motor disarmed after 5 seconds.\n");
+//     //     } 
+        
+//     //     else if(!disarm){
+          
+//     //         // While in emergency landing, continue reducing thrust
+            
+//     //         velocity = -0.3f * (1.0f + 0.2f * elapsed_seconds); 
+//     //         if(velocity<=0 ){
+//     //           velocityAdjustment = velocity;
+//     //               printf("velocity is : %.2f\n ", velocity);
+
+//     //         }
+//     //     }
+//     //     else{
+//     //           velocityAdjustment = 0;
+//     //         }
+        
+//     // }
+   
+//     printf("Velocity Adjustment: %.2f\n", velocityAdjustment);
+//     return velocityAdjustment;
+// }
