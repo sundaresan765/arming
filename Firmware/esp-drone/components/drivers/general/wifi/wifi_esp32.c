@@ -48,7 +48,7 @@ static uint8_t WIFI_CH = 1;
 #define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
 #endif
 
-int counter = 0;
+ int counter = 0;
 bool armMode = false;
 bool altHoldMode = true;
 bool disarm_clicked = false;
@@ -60,7 +60,7 @@ bool land_completed = false;
 bool landMode = false;
 bool landCompleatedOnce = false;
 bool isTakeOff = false;
-
+bool land = true;
 
 static char rx_buffer[UDP_SERVER_BUFSIZE];
 static char tx_buffer[UDP_SERVER_BUFSIZE];
@@ -86,7 +86,7 @@ static bool isOnground = false; // status of the drone dks
 static bool motorinit = false;
 static bool ismotorinit = false;
 static esp_err_t udp_server_create(void *arg);
-
+int start_time_us = 0;
 static uint8_t calculate_cksum(void *data, size_t len)
 {
     unsigned char *c = data;
@@ -307,37 +307,45 @@ static void udp_server_rx_task(void *pvParameters)
             }
 #endif
         }
-         if(distanceDown > 0.10f && altHoldMode){ // 
+         if(distanceDown > 0.10f && altHoldMode ){ // 
             takeoff_completed = true;
-            printf("takeoff_completed %f \n",distanceDown);
+           
+           // printf("takeoff_completed %f \n",distanceDown);
+            if(land){
             uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  // Hardcoded float 21.4 (little-endian)
-            if(counter==4){
+           
             for (int i = 0; i < 10; i++) {
                 wifiSendData(sizeof(packet), packet);
+                printf("kaushik it is in takeoff mode\n");
             }
-                counter = 0;
-            }
+          
+            land = false;
+        }
+            
             landCompleatedOnce = false;
-                    
+            landMode = true;
             }
         if(takeoff_completed && landMode && distanceDown <= 0.065f){
-            printf("distance down is in landing\n");
+            //printf("distance down is in landing\n");
             landCompleatedOnce = false;
             if(!landCompleatedOnce){
                 land_completed = true;
                 landCompleatedOnce = true;
-                printf("land_completed %f \n",distanceDown);     
+                // printf("land_completed %f \n",distanceDown);     
                 uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43};  // Hardcoded float 21.4 (little-endian)
-                printf("Land Packet bytes: ");
+               // printf("Land Packet bytes: ");
                 for (size_t i = 0; i < sizeof(packet); i++) {
                     wifiSendData(sizeof(packet), packet);
-                }
+                    printf("kaushik it is in landoff mode\n");
 
+                }
+                land = true;
+                
                 }else{
                 land_completed = false;
             
                 }
-        //printf("Tof data %f \n",distanceDown);
+       // printf("Tof data %f \n",distanceDown);
         //printf("Tof data %f \n",tofMeasurement->distance);
     }
 
@@ -470,15 +478,15 @@ static void sendBatteryVoltageTask(void)
     while (1)
     {
         voltage = pmGetBatteryVoltage(); // Retrieve battery voltage
-        printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
+        //printf("Battery voltage: %f\n", voltage); // Print battery voltage to console
         memcpy(packet, &voltage, sizeof(float)); // Copy voltage into packet buffer
 
         wifiSendData(sizeof(packet), packet); // Send the packet over Wi-Fi
         printf("Packet bytes: ");
-        for (size_t i = 0; i < sizeof(packet); i++)
-        {
-            printf("%02X ", packet[i]);
-        }
+        // for (size_t i = 0; i < sizeof(packet); i++)
+        // {
+        //     printf("%02X ", packet[i]);
+        // }
         vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1 second
     }
 }

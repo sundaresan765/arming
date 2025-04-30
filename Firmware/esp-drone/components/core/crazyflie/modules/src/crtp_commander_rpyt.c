@@ -293,15 +293,15 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
     {
       //disarmMotor();
       setpoint->mode.z = modeDisable;
-      printf("velocity modeDisabled cuz  takeoff command not received\n");
+     // printf("velocity modeDisabled cuz  takeoff command not received\n");
     }else if(takeoff_completed && distanceDown <= 0.065f) // condition for takeoff is pressed and the drone is on the ground
     {
       disarmMotor();
       setpoint->mode.z = modeDisable;
-      printf("Diarmed and velocity modeDisabled cuz  land completed\n");
+      //printf("Diarmed and velocity modeDisabled cuz  land completed\n");
     }
     else{
-      printf("velocity controller is activated\n");
+      //printf("velocity controller is activated\n");
       setpoint->thrust = 0;
       setpoint->mode.z = modeVelocity;
       setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
@@ -324,7 +324,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
 
   }
   if(landMode && takeoff_completed){
-    printf("land mode and takeoff completed\n");
+   // printf("land mode and takeoff completed\n");
     setpoint->thrust = 0;
     setpoint->mode.z = modeVelocity;
     setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
