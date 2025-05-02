@@ -57,10 +57,12 @@
 #define MAX_THRUST  60000
 #define zPosFactor  500000.0f // with 5l there is smoothness in ascend and descend
 
+bool disarm = false;
+
 
 float MAX_ALTITUDE = 2.0f;
 
-int  motorvalue = 50000; 
+int  motorvalue = 37000; 
 static bool any_cmmands = false; // Flag to check if any commands are received
 
 /**
@@ -200,7 +202,7 @@ void armMotor(){
   // setpoint_t setpointInstance = {0};  // Initialize with zeros
   // setpoint_t *setpoint = &setpointInstance;
   //printf("arm mode is enabled\n");
-  while (elapsed_time_ms < 5000) {  
+  while (elapsed_time_ms < 2000) {  
     int64_t current_time_us = esp_timer_get_time();
     elapsed_time_ms = (current_time_us - start_time_us) / 1000; // Update first!
 
@@ -226,6 +228,8 @@ void armMotor(){
 }
 void disarmMotor(){
    // printf("arm mode is disabled\n");
+   disarm = true;
+
     motorsSetRatio(MOTORS[0],0);
     motorsSetRatio(MOTORS[1],0);
     motorsSetRatio(MOTORS[2], 0);
@@ -249,13 +253,13 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   //int32_t
   rawThrust = values->thrust;
   //printf("rawThrust: %d\n", rawThrust);
-
+  if(isArmsuccess){
   if (thrustLocked || (rawThrust < MIN_THRUST)) {
     setpoint->thrust = 0;
   } else {
     setpoint->thrust = fminf(rawThrust, MAX_THRUST);
   }
-  
+}
  if(altHoldMode){
     if(rawThrust != 0){
       if(rawThrust > 0){

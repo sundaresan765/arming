@@ -27,7 +27,8 @@
 
 #include <math.h>
 #include "num.h"
-
+#include "esp_timer.h"
+#include "esp_system.h"
 #include "commander.h"
 #include "log.h"
 #include "param.h"
@@ -267,11 +268,28 @@ void positionControllerResetAllPID()
   pidReset(&this.pidVZ.pid);
 }
 
-// added by dks
 float computeAltitudeHoldPID(float currentAltitude)
+
 {
+  static bool emergencyLanding = false;
+    static int64_t start_time_us = 0; // Track emergency landing start time
+    static bool f = false;  // Initialize the flag
+    //static int emergencyCounter = 0; // Emergency counter
+    float velocity;
+        float velocityAdjustment = 0;
+
+    // if (currentAltitude > 1.0) {
+    //     currentAltitude = 0;
+    //     f = true;  // Set f to true when the altitude is above 0.6
+    // }
+
+    // if (f) {
+    //     currentAltitude = 0;
+    // }
+        if(currentAltitude>0){
+
     altitudeError = targetAltitude - currentAltitude;
-    // printf("current altitude is %f \n", currentAltitude);
+    printf("current altitude is %f \n", currentAltitude);
     // printf("target altitude is %f \n", targetAltitude);
     // printf("altitudeError = %f \n",altitudeError);
 
@@ -287,7 +305,9 @@ float computeAltitudeHoldPID(float currentAltitude)
     lastError = altitudeError;
 
     // Compute thrust adjustment
-    float velocityAdjustment = P + I + D;
+    printf("velocity adjustment is before               %2f\n", velocityAdjustment);
+    // if(currentAltitude>0){
+      velocityAdjustment = P + I + D;
     if(rawThrust < 0.0f && velocityAdjustment > 0.0f) {
         velocityAdjustment = -(velocityAdjustment);}
     if(currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
@@ -298,7 +318,52 @@ float computeAltitudeHoldPID(float currentAltitude)
     } else if (velocityAdjustment < -(min_maxVelcoity)) {
         velocityAdjustment = -(min_maxVelcoity);
     }
-    //printf("velocity is : %.2f \n",velocityAdjustment);
+
+  }
+    else {
+        if (!emergencyLanding) {
+            emergencyLanding = true;
+              // Reset emergency counter
+            start_time_us = esp_timer_get_time();  // Capture the start time
+            printf("Emergency landing started!\n");
+        }
+
+        // Calculate elapsed time
+        int elapsed_time_ms = (esp_timer_get_time() - start_time_us) / 1000; // Convert microseconds to milliseconds
+        printf("Elapsed time: %d ms\n", elapsed_time_ms);
+            int elapsed_seconds = elapsed_time_ms / 1000;  // 0,1,2,3,4
+ 
+        if (elapsed_time_ms >= 5000) {  // After 5 seconds
+          disarm =true ;
+          disarmMotor();
+           printf("Motor disarmed after 5 seconds.\n");
+          //vTaskDelay(2000 / portTICK_PERIOD_MS);
+          esp_restart();
+          f = false;                // Disarm the motor
+          emergencyLanding = false; // End emergency landing state
+    //       printf("Soft resetting ESP32...\n");
+    // vTaskDelay(2000 / portTICK_PERIOD_MS);  // 2-second delay
+          printf("Motor disarmed after 5 seconds.\n");
+        } 
+        
+        else if(!disarm){
+          
+            // While in emergency landing, continue reducing thrust
+            
+            velocity = -0.3f * (1.0f + 0.2f * elapsed_seconds); 
+            if(velocity<=0 ){
+              velocityAdjustment = velocity;
+                  printf("velocity is : %.2f\n ", velocity);
+
+            }
+        }
+        else{
+              velocityAdjustment = 0;
+            }
+        
+    }
+   
+    printf("velocity is : %.2f \n",velocityAdjustment);
     return velocityAdjustment;
 }
 // float computeAltitudesHoldPID(float currentAltitude)
