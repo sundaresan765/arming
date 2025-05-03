@@ -1,4 +1,4 @@
-/* * Data converted from C:/Users/sunda/Downloads/latest/Firmware/esp-drone/build/esp-idf/mbedtls/x509_crt_bundle
+/* * Data converted from C:/Users/sunda/Downloads/arming/Firmware/esp-drone/build/esp-idf/mbedtls/x509_crt_bundle
  */
 .data
 .section .rodata.embedded

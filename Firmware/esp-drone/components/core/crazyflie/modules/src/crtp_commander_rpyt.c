@@ -254,6 +254,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   rawThrust = values->thrust;
   //printf("rawThrust: %d\n", rawThrust);
   if(isArmsuccess){
+
   if (thrustLocked || (rawThrust < MIN_THRUST)) {
     setpoint->thrust = 0;
   } else {
@@ -263,7 +264,9 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
  if(altHoldMode){
     if(rawThrust != 0){
       if(rawThrust > 0){
-        //printf("rawThrust is positive\n");
+    
+        landed=false;
+        printf("rawThrust is positive   %d\n",rawThrust);
         setpoint->position.z = values->thrust/zPosFactor;
         targetAltitude = distanceDown + setpoint->position.z; // Update target altitude with pilot input
         if(targetAltitude > MAX_ALTITUDE) 
@@ -298,12 +301,24 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
       //disarmMotor();
       setpoint->mode.z = modeDisable;
      // printf("velocity modeDisabled cuz  takeoff command not received\n");
-    }else if(takeoff_completed && distanceDown <= 0.065f) // condition for takeoff is pressed and the drone is on the ground
-    {
+    // }else if(takeoff_completed && distanceDown <= 0.065f) // condition for takeoff is pressed and the drone is on the ground
+    // {
+    //   disarmMotor();
+    //   setpoint->mode.z = modeDisable;
+    //   //printf("Diarmed and velocity modeDisabled cuz  land completed\n");
+    }
+    else if(landed){
+      printf("landed is true and not allowing mot to run without user input\n");
       disarmMotor();
       setpoint->mode.z = modeDisable;
-      //printf("Diarmed and velocity modeDisabled cuz  land completed\n");
+      //printf("velocity modeDisabled cuz  landed\n");
     }
+    // else if(!isTakeOff && takeoff_completed && distanceDown > 0.065f) // condition for takeoff is pressed and the drone is on the ground
+    // {
+    //   //disarmMotor();
+    //   setpoint->mode.z = modeDisable;
+    //   //printf("velocity modeDisabled cuz  takeoff command not received\n");
+    // }
     else{
       //printf("velocity controller is activated\n");
       setpoint->thrust = 0;
@@ -327,14 +342,14 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
 
 
   }
-  if(landMode && takeoff_completed){
-   // printf("land mode and takeoff completed\n");
-    setpoint->thrust = 0;
-    setpoint->mode.z = modeVelocity;
-    setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
-    // printf("velocity.z is landMode : %f \n",setpoint->velocity.z);
+  // if(landMode && takeoff_completed){
+  //  // printf("land mode and takeoff completed\n");
+  //   setpoint->thrust = 0;
+  //   setpoint->mode.z = modeVelocity;
+  //   setpoint->velocity.z = computeAltitudeHoldPID(distanceDown);
+  //   // printf("velocity.z is landMode : %f \n",setpoint->velocity.z);
 
-  }
+  // }
   if(land_completed){ // disbale the altitude hold mode when the drone is on the ground
     //bool landComAck = false;
     //if(!landComAck){

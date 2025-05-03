@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Downloads/latest/Firmware/esp-drone/components/drivers/i2c_devices/hmc5883l
+# Install script for directory: C:/Users/sunda/Downloads/arming/Firmware/esp-drone/components/drivers/i2c_devices/hmc5883l
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

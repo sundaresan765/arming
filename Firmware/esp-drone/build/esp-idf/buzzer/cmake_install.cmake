@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/sunda/Downloads/latest/Firmware/esp-drone/components/drivers/general/buzzer
+# Install script for directory: C:/Users/sunda/Downloads/arming/Firmware/esp-drone/components/drivers/general/buzzer
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

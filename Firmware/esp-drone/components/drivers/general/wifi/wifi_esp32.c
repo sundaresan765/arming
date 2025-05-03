@@ -61,6 +61,7 @@ bool landMode = false;
 bool landCompleatedOnce = false;
 bool isTakeOff = false;
 bool land = true;
+bool landed = false;
 bool isArmsuccess = false;
 static char rx_buffer[UDP_SERVER_BUFSIZE];
 static char tx_buffer[UDP_SERVER_BUFSIZE];
@@ -244,6 +245,8 @@ static void udp_server_rx_task(void *pvParameters)
             }
             if(rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x01){ // takeoff message
                 counter = 4;
+                landed=false;
+
                 printf("takeoff  mode is pressed on\n");
                 //isTakeOff = false;
                 if (!isTakeOff && altHoldMode && distanceDown>0 && isArmsuccess)
@@ -320,7 +323,7 @@ static void udp_server_rx_task(void *pvParameters)
                 wifiSendData(sizeof(packet), packet);
                 printf("kaushik it is in takeoff mode\n");
             }
-          
+            //landed=false;
             land = false;
         }
             
@@ -341,6 +344,7 @@ static void udp_server_rx_task(void *pvParameters)
                     printf("kaushik it is in landoff mode\n");
 
                 }
+                landed = true;
                 land = true;
                 
                 }else{
@@ -423,7 +427,7 @@ void wifiInit(void)
                     NULL));
 
     ESP_ERROR_CHECK(esp_wifi_get_mac(ESP_IF_WIFI_AP, mac));
-    sprintf(WIFI_SSID, "ESP-DRONE_%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+    sprintf(WIFI_SSID, "ARIS_%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
     wifi_config_t wifi_config = {
         .ap = {

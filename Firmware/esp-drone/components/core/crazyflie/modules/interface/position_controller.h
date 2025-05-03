@@ -36,13 +36,14 @@ extern float targetAltitude;
 float currentAltitude;
 extern bool altHoldMode;
 extern bool armMode;
+extern bool isThrust;
 
 extern bool disarm_clicked;
 extern bool isTakeOff;
 extern bool landMode;
 extern bool isArmsuccess;
 extern bool disarm;
-
+extern bool landed;
 //extern bool takeOffMode;
 
 extern bool takeoff_completed;
