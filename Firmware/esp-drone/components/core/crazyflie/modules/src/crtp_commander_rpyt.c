@@ -58,7 +58,7 @@
 #define zPosFactor  500000.0f // with 5l there is smoothness in ascend and descend
 
 bool disarm = false;
-
+bool isthrust = false;
 
 float MAX_ALTITUDE = 2.0f;
 
@@ -253,6 +253,12 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
   //int32_t
   rawThrust = values->thrust;
   //printf("rawThrust: %d\n", rawThrust);
+  if(rawThrust>0){
+    isthrust = true;
+  }
+  else{
+    isthrust = false;
+  }
   if(isArmsuccess){
 
   if (thrustLocked || (rawThrust < MIN_THRUST)) {
@@ -266,7 +272,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
       if(rawThrust > 0){
     
         landed=false;
-        printf("rawThrust is positive   %d\n",rawThrust);
+       // printf("rawThrust is positive   %d\n",rawThrust);
         setpoint->position.z = values->thrust/zPosFactor;
         targetAltitude = distanceDown + setpoint->position.z; // Update target altitude with pilot input
         if(targetAltitude > MAX_ALTITUDE) 
@@ -308,7 +314,7 @@ void crtpCommanderRpytDecodeSetpoint(setpoint_t *setpoint, CRTPPacket *pk)
     //   //printf("Diarmed and velocity modeDisabled cuz  land completed\n");
     }
     else if(landed){
-      printf("landed is true and not allowing mot to run without user input\n");
+     // printf("landed is true and not allowing mot to run without user input\n");
       disarmMotor();
       setpoint->mode.z = modeDisable;
       //printf("velocity modeDisabled cuz  landed\n");

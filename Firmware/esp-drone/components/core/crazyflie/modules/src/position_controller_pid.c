@@ -286,38 +286,47 @@ float computeAltitudeHoldPID(float currentAltitude)
     // if (f) {
     //     currentAltitude = 0;
     // }
-        if(currentAltitude>0){
+        printf("current altitude is %f\n", currentAltitude);
+        if (currentAltitude > 0)
+        {
 
-    altitudeError = targetAltitude - currentAltitude;
-    printf("current altitude is %f \n", currentAltitude);
-    // printf("target altitude is %f \n", targetAltitude);
-    // printf("altitudeError = %f \n",altitudeError);
+          altitudeError = targetAltitude - currentAltitude;
+          // printf("current altitude is %f \n", currentAltitude);
+          // printf("target altitude is %f \n", targetAltitude);
+          // printf("altitudeError = %f \n",altitudeError);
 
-    // Proportional term
-    float P = Kp * altitudeError;
+          // Proportional term
+          float P = Kp * altitudeError;
 
-    // Integral term
-    integralError += altitudeError;
-    float I = Ki * (integralError * DT);
+          // Integral term
+          integralError += altitudeError;
+          float I = Ki * (integralError * DT);
 
-    // Derivative term
-    float D = Kd *((altitudeError - lastError) / DT);
-    lastError = altitudeError;
+          // Derivative term
+          float D = Kd * ((altitudeError - lastError) / DT);
+          lastError = altitudeError;
 
-    // Compute thrust adjustment
-    printf("velocity adjustment is before               %2f\n", velocityAdjustment);
-    // if(currentAltitude>0){
-      velocityAdjustment = P + I + D;
-    if(rawThrust < 0.0f && velocityAdjustment > 0.0f) {
-        velocityAdjustment = -(velocityAdjustment);}
-    if(currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f) {
-      velocityAdjustment = -(velocityAdjustment);}
-      //printf("velocity is : %.2f",velocityAdjustment);
-    if(velocityAdjustment > min_maxVelcoity) {
-        velocityAdjustment = min_maxVelcoity;
-    } else if (velocityAdjustment < -(min_maxVelcoity)) {
-        velocityAdjustment = -(min_maxVelcoity);
-    }
+          // Compute thrust adjustment
+          // printf("velocity adjustment is before               %2f\n", velocityAdjustment);
+          // if(currentAltitude>0){
+          velocityAdjustment = P + I + D;
+          if (rawThrust < 0.0f && velocityAdjustment > 0.0f)
+          {
+            velocityAdjustment = -(velocityAdjustment);
+          }
+          if (currentAltitude > MAX_ALTITUDE && velocityAdjustment > 0.0f)
+          {
+            velocityAdjustment = -(velocityAdjustment);
+          }
+          // printf("velocity is : %.2f",velocityAdjustment);
+          if (velocityAdjustment > min_maxVelcoity)
+          {
+            velocityAdjustment = min_maxVelcoity;
+          }
+          else if (velocityAdjustment < -(min_maxVelcoity))
+          {
+            velocityAdjustment = -(min_maxVelcoity);
+          }
 
   }
     else {
@@ -353,7 +362,7 @@ float computeAltitudeHoldPID(float currentAltitude)
             velocity = -0.3f * (1.0f + 0.2f * elapsed_seconds); 
             if(velocity<=0 ){
               velocityAdjustment = velocity;
-                  printf("velocity is : %.2f\n ", velocity);
+                  //printf("velocity is : %.2f\n ", velocity);
 
             }
         }
@@ -363,38 +372,9 @@ float computeAltitudeHoldPID(float currentAltitude)
         
     }
    
-    printf("velocity is : %.2f \n",velocityAdjustment);
+   // printf("velocity is : %.2f \n",velocityAdjustment);
     return velocityAdjustment;
 }
-// float computeAltitudesHoldPID(float currentAltitude)
-// {
-//   printf("current altitude is %f", currentAltitude);
-
-//   altitudeError = targetAltitude - currentAltitude;
-//   printf("altitudeError = %f \n", altitudeError);
-
-//   // Proportional term
-//   float P = Kp * altitudeError;
-
-//   // Integral term
-//   integralError += altitudeError;
-//   float I = Ki * (integralError * DT);
-
-//   // Derivative term
-//   float D = Kd * ((altitudeError - lastError) / DT);
-//   lastError = altitudeError;
-
-//   // Compute thrust adjustment
-//   float velocityAdjustment = P + I + D;
-//   if (velocityAdjustment > 1.0f)
-//   {
-//     velocityAdjustment = 1.0f;
-//   } else if (velocityAdjustment < -1.0f) {
-//         velocityAdjustment = -1.0f;
-//     }
-//     printf("velocity is : %.2f",velocityAdjustment);
-//     return velocityAdjustment;
-// }
 
 LOG_GROUP_START(posCtl)
 

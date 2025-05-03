@@ -44,6 +44,7 @@ extern bool landMode;
 extern bool isArmsuccess;
 extern bool disarm;
 extern bool landed;
+extern bool isthrust;
 //extern bool takeOffMode;
 
 extern bool takeoff_completed;
