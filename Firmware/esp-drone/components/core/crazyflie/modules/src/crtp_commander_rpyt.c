@@ -228,7 +228,7 @@ void armMotor(){
 }
 void disarmMotor(){
    // printf("arm mode is disabled\n");
-   disarm = true;
+   //disarm = true;
 
     motorsSetRatio(MOTORS[0],0);
     motorsSetRatio(MOTORS[1],0);
