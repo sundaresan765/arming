@@ -38,7 +38,7 @@ extern bool altHoldMode;
 extern bool less_voltage;
 extern bool armMode;
 extern bool isThrust;
-
+extern bool negative_thrust;
 extern bool disarm_clicked;
 extern bool isTakeOff;
 extern bool landMode;
@@ -47,13 +47,13 @@ extern bool disarm;
 extern bool landed;
 extern bool isthrust;
 //extern bool takeOffMode;
-
+extern  bool isTake_thrust;
 extern bool takeoff_completed;
 extern bool land_completed;
 extern int32_t rawThrust;
 extern float MAX_ALTITUDE;
 extern float voltage;
-
+extern bool  isTake_button;
 
 
 float computeAltitudeHoldPID(float currentAltitude);

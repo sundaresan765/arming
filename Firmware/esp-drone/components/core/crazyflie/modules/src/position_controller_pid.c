@@ -49,7 +49,6 @@ float altitudeError = 0;
 float integralError = 0;
 float lastError = 0;
 
-
 float targetAltitude = 0.0f;
 int32_t rawThrust = 0;
 // int8_t minVelcoity = -0.5f;
@@ -214,7 +213,7 @@ void positionController(float *thrust, attitude_t *attitude, setpoint_t *setpoin
 
   float cosyaw = cosf(state->attitude.yaw * (float)M_PI / 180.0f);
   float sinyaw = sinf(state->attitude.yaw * (float)M_PI / 180.0f);
-  float bodyvx =  setpoint->velocity.x;
+  float bodyvx = setpoint->velocity.x;
   float bodyvy = setpoint->velocity.y;
 
   // X, Y
@@ -286,7 +285,6 @@ void positionControllerResetAllPID()
 float computeAltitudeHoldPID(float currentAltitude)
 
 {
-  setpoint_t *setpoint=NULL;
 
   static bool emergencyLanding = false;
   static int64_t start_time_us = 0; // Track emergency landing start time
@@ -295,7 +293,7 @@ float computeAltitudeHoldPID(float currentAltitude)
   float velocity;
   float velocityAdjustment = 0;
 
-  // if (currentAltitude > 1.0) {
+  // if (currentAltitude > 0.5) {
   //     currentAltitude = 0;
   //     f = true;  // Set f to true when the altitude is above 0.6
   // }
@@ -303,19 +301,12 @@ float computeAltitudeHoldPID(float currentAltitude)
   // if (f) {
   //     currentAltitude = 0;
   // }
-  if(less_voltage){
-    targetAltitude=0.05;
-    printf("target altitude in less_voltage is %f\n", targetAltitude);
-    printf("Battery voltage  before: %f\n", voltage);
-   
-
-
+  if (less_voltage)
+  {
+    targetAltitude = 0.05;
+    // printf("target altitude in less_voltage is %f\n", targetAltitude);
+    // printf("Battery voltage  before: %f\n", voltage);
   }
-  if (setpoint != NULL) {
-    printf("set point is %f\n", setpoint->position.z);
-} else {
-    printf("setpoint is NULL\n");
-}
 
   printf("current altitude is %f\n", currentAltitude);
   if (currentAltitude > 0)
@@ -323,9 +314,9 @@ float computeAltitudeHoldPID(float currentAltitude)
 
     altitudeError = targetAltitude - currentAltitude;
     // printf("current altitude is %f \n", currentAltitude);
-     printf("target altitude is %f \n", targetAltitude);
+    printf("target altitude is %f \n", targetAltitude);
 
-    printf("voltage= %f \n",voltage);
+    printf("voltage= %f \n", voltage);
 
     // Proportional term
     float P = Kp * altitudeError;

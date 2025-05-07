@@ -34,7 +34,7 @@
 float distanceDown = 0.0f; // dks
 int motor_rpm = 0;
 static struct sockaddr_in6 source_addr; // Large enough for both IPv4 or IPv6
-float voltage=0.0f;
+float voltage = 0.0f;
 // #define WIFI_SSID      "Udp Server"
 static char WIFI_SSID[32] = "ARIS_01";
 static char WIFI_PWD[64] = "12345678";
@@ -47,7 +47,7 @@ static uint8_t WIFI_CH = 1;
 #endif
 
 bool takeoff_battery = false;
-int counter = 0;
+bool negative_thrust=true;
 bool armMode = false;
 bool altHoldMode = true;
 bool disarm_clicked = false;
@@ -56,6 +56,8 @@ bool takeoff_completed = false;
 bool land_completed = false;
 bool less_voltage = false;
 bool f = false;
+bool isTake_thrust=false;
+bool  isTake_button=false;
 // bool landModde = false;
 // bool takeOffMode = false;
 bool landMode = false;
@@ -186,7 +188,7 @@ static void udp_server_rx_task(void *pvParameters)
             vTaskDelay(20);
             continue;
         }
-       
+
         int len = recvfrom(sock, rx_buffer, sizeof(rx_buffer) - 1, 0, (struct sockaddr *)&source_addr, &socklen);
         /* command step - receive  01 from Wi-Fi UDP */
         if (len < 0)
@@ -216,7 +218,7 @@ static void udp_server_rx_task(void *pvParameters)
             // printf("\n");
 
             if (rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x01)
-            { // ARM message
+            { // ARM BUTTON PRESSED ON
                 isArmed = false;
                 printf("arm button pressed on\n");
                 if (!isArmed)
@@ -225,7 +227,7 @@ static void udp_server_rx_task(void *pvParameters)
                     armMode = true;
                     disarm_clicked = false;
                     isArmed = true;
-                    uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x41}; // Hardcoded float 21.4 (little-endian)
+                    uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x41}; // arm ack
                     for (int i = 0; i < 20; i++)
                     {
                         wifiSendData(sizeof(packet), packet);
@@ -246,19 +248,20 @@ static void udp_server_rx_task(void *pvParameters)
 
             else if (rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x33 && rx_buffer[3] == 0x00) // disarm message
             {
+                // DISARM IS PRESSED
                 printf("Disarm button pressed \n");
                 if (isArmed)
                 {
                     isArmsuccess = false;
                     armMode = false;
                     disarm_clicked = true;
-                    printf("Disarm mode is activated \n");
-                    uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x42}; // Hardcoded float 21.4 (little-endian)
+                    //printf("Disarm mode is activated \n");
+                    uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x42}; // disarm ack
                     for (int i = 0; i < 20; i++)
                     {
                         wifiSendData(sizeof(packet), packet);
                     }
-                    printf("Packet bytes: ");
+                    printf("Disarm Packet bytes: ");
                     for (size_t i = 0; i < sizeof(packet); i++)
                     {
                         printf("%02X ", packet[i]);
@@ -268,7 +271,8 @@ static void udp_server_rx_task(void *pvParameters)
             }
             if (rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x01)
             { // takeoff message
-                counter = 4;
+                // isTake_thrust=true;
+                isTake_button=true;
                 landed = false;
                 takeoff_battery = true;
                 printf("takeoff  mode is pressed on\n");
@@ -277,7 +281,7 @@ static void udp_server_rx_task(void *pvParameters)
                 {
                     // altHoldMode = true;
                     targetAltitude = 0.50f; // 0.50f; //distanceDown;
-                    printf("Takeoff mode is actvated with TOF  target altitude is %f \n", targetAltitude);
+                    printf("Takeoff mode is activated with TOF  target altitude is %f \n", targetAltitude);
                     isTakeOff = true;
                     // land_completed = false;
                     // landMode = false;
@@ -291,22 +295,18 @@ static void udp_server_rx_task(void *pvParameters)
             }
             else if (rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x11 && rx_buffer[3] == 0x00) // LAND message
             {
+                isTake_button=false; 
                 takeoff_battery = false;
                 printf("land mode is pressed \n");
-                if (isTakeOff && altHoldMode && isArmsuccess)
+                if (takeoff_completed && altHoldMode && isArmsuccess)
                 {
-                    if (takeoff_completed)
-                    {
+                  
                         landMode = true;
                         // altHoldMode = false;
                         targetAltitude = 0.05f;
                         isTakeOff = false;
                         printf("Land mode is actvated with TOF  target altitude is %f \n", targetAltitude);
-                    }
-                    else
-                    {
-                        printf("Drone is on ground!!! %f \n", distanceDown);
-                    }
+                    
                 }
             }
             if (rx_buffer[0] == 0x71 && rx_buffer[1] == 0x13 && rx_buffer[2] == 0x22 && rx_buffer[3] == 0x00) // for enabling sports mode
@@ -344,20 +344,21 @@ static void udp_server_rx_task(void *pvParameters)
             }
 #endif
         }
-        if (distanceDown > 0.10f && altHoldMode)
+        if (distanceDown > 0.10f && altHoldMode && (isTake_thrust || isTake_button))
         { //
             takeoff_completed = true;
             takeoff_battery = true;
             f = true;
-            // printf("takeoff_completed %f \n",distanceDown);
+            negative_thrust=false;
+            printf("takeoff_completed working\n");
             if (land)
             {
-                uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43}; // Hardcoded float 21.4 (little-endian)
+                uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x43}; //takeoff ack
 
-                for (int i = 0; i < 20; i++)
+                for (int i = 0; i < 26; i++)
                 {
                     wifiSendData(sizeof(packet), packet);
-                    //printf("kaushik it is in takeoff mode\n");
+                    // printf("kaushik it is in takeoff mode\n");
                 }
                 // landed=false;
                 land = false;
@@ -370,19 +371,20 @@ static void udp_server_rx_task(void *pvParameters)
         {
             printf("distance down is in landing\n");
             landCompleatedOnce = false;
+            isTake_button=false;
             takeoff_battery = false;
+            negative_thrust=true;
             if (!landCompleatedOnce)
             {
                 land_completed = true;
                 landCompleatedOnce = true;
                 // printf("land_completed %f \n",distanceDown);
-
                 uint8_t packet[4] = {0xCD, 0xCC, 0xAC, 0x44}; // Hardcoded float 21.4 (little-endian)
                                                               // printf("Land Packet bytes: ");
                 for (size_t i = 0; i < sizeof(packet); i++)
                 {
                     wifiSendData(sizeof(packet), packet);
-                    //printf("kaushik it is in landoff mode\n");
+                    // printf("kaushik it is in landoff mode\n");
                 }
                 landed = true;
                 land = true;
@@ -420,7 +422,7 @@ static void udp_server_tx_task(void *pvParameters)
             tx_buffer[outPacket.size] = checksum;
             tx_buffer[outPacket.size + 1] = 0; // Null-terminator (optional if not needed)
 
-            //ESP_LOGI("UDP_TX", "Sending %d bytes + 1 byte checksum", outPacket.size);
+            // ESP_LOGI("UDP_TX", "Sending %d bytes + 1 byte checksum", outPacket.size);
 
             // Print data before sending
             // printf("TX Packet: ");
@@ -429,19 +431,19 @@ static void udp_server_tx_task(void *pvParameters)
             // }
             // printf("\n");
 
-            //ESP_LOGI("HEAP", "Before send: %d", esp_get_free_heap_size());
+            // ESP_LOGI("HEAP", "Before send: %d", esp_get_free_heap_size());
 
             // Send the data
             int err = sendto(sock, tx_buffer, outPacket.size + 1, 0, (struct sockaddr *)&source_addr, sizeof(source_addr));
-           // ESP_LOGI("HEAP", "After send: %d", esp_get_free_heap_size());
+            // ESP_LOGI("HEAP", "After send: %d", esp_get_free_heap_size());
 
             if (err < 0)
             {
-               // ESP_LOGE("UDP_TX", "Error occurred during sending: errno %d", errno);
+                // ESP_LOGE("UDP_TX", "Error occurred during sending: errno %d", errno);
                 continue;
             }
 
-           // ESP_LOGI("UDP_TX", "UDP packet sent successfully (%d bytes)", err);
+            // ESP_LOGI("UDP_TX", "UDP packet sent successfully (%d bytes)", err);
         }
     }
 }
@@ -525,7 +527,7 @@ void wifiInit(void)
 
 static void sendBatteryVoltageTask(void)
 {
-    //float voltage;
+    // float voltage;
     const uint8_t header = 0xBE;       // Define a header byte (e.g., 0xBE for "Battery")
     uint8_t packet[1 + sizeof(float)]; // 1 byte for header + 4 bytes for float
 
@@ -537,7 +539,7 @@ static void sendBatteryVoltageTask(void)
         {
             voltage += 0.37;
         }
-      //  printf("Battery voltage  before: %f\n", voltage);
+        //  printf("Battery voltage  before: %f\n", voltage);
 
         // if (f == true)
         // {
@@ -549,7 +551,7 @@ static void sendBatteryVoltageTask(void)
             wifiSendData(sizeof(packets), packets);
         }
 
-        printf("Battery voltage: %f\n", voltage);
+        //printf("Battery voltage: %f\n", voltage);
         packet[0] = header;                          // Add header at the beginning
         memcpy(&packet[1], &voltage, sizeof(float)); // Copy voltage after the header
 
