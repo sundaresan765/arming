@@ -552,7 +552,7 @@ static void sendBatteryVoltageTask(void)
             uint8_t packets[4] = {0xCD, 0xCC, 0xAC, 0x45}; // Hardcoded float 21.4 (little-endian)
             for (int i = 0; i < 10; i++)
             {
-              wifiSendData(sizeof(packet), packet);
+              wifiSendData(sizeof(packets), packets);
             }
            
         }
