@@ -374,6 +374,7 @@ static void udp_server_rx_task(void *pvParameters)
             landCompleatedOnce = false;
             isTake_button=false;
             takeoff_battery = false;
+            isTakeOff=false;
             negative_thrust=true;
             if (!landCompleatedOnce)
             {
