@@ -1,0 +1,18 @@
+{
+    "idf.portWin": "COM46",
+    "idf.flashType": "UART",
+    "files.associations": {
+        "num.h": "c",
+        "cf_math.h": "c",
+        "zranger2.h": "c",
+        "position_estimator.h": "c",
+        "motors.h": "c",
+        "position_controller.h": "c",
+        "sensors.h": "c",
+        "stabilizer.h": "c",
+        "pm_esplane.h": "c",
+        "controller.h": "c",
+        "power_distribution.h": "c",
+        "ms5611.h": "c"
+    }
+}
